@@ -1,4 +1,4 @@
-import { createContext, useReducer, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useReducer, useEffect, useRef, type ReactNode } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
@@ -36,7 +36,7 @@ function reducer(state: State, action: SessionAction): State {
     case 'FILL_COMPLETE':
       return { ...state, sessionState: 'countdown' };
     case 'CANCEL':
-      return { ...state, sessionState: 'idle', activeSession: null, dismissMessage: action.message ?? null };
+      return { ...state, sessionState: 'idle', activeSession: null, dismissMessage: ('message' in action ? action.message : null) ?? null };
     case 'SESSION_STARTED':
       return { ...state, sessionState: 'active', activeSession: action.session };
     case 'SESSION_ENDED':
@@ -116,12 +116,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     let isStarting = false;
 
     const subscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
-      // Only react to definitive states, not transitional 'inactive'
-      if (nextState === 'inactive') return;
-
       const current = stateRef.current;
 
-      // COUNTDOWN + phone locked → START SESSION
+      // COUNTDOWN + phone locked → START SESSION (only on 'background', not 'inactive')
       if (nextState === 'background' && current.sessionState === 'countdown') {
         if (isStarting) return;
         isStarting = true;
@@ -157,9 +154,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return; // Don't also check end condition in same event
       }
 
-      // ACTIVE + user returned → end session
-      // Session ends when user comes back (unlocks phone / opens app)
-      if (nextState === 'active' &&
+      // ACTIVE + device unlocked → end session immediately
+      // Any state change away from 'background' means the device was unlocked
+      // This catches both: returning to sevvr (active) and unlocking to another app (inactive)
+      if ((nextState === 'active' || nextState === 'inactive') &&
           current.sessionState === 'active' && current.activeSession) {
         if (isEndingRef.current) return;
         isEndingRef.current = true;

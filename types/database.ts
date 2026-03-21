@@ -42,6 +42,7 @@ export type Database = {
           updated_at?: string;
           deleted_at?: string | null;
         };
+        Relationships: [];
       };
       sessions: {
         Row: {
@@ -73,6 +74,7 @@ export type Database = {
           challenge_id?: string | null;
           missed_content?: Json;
         };
+        Relationships: [];
       };
       streaks: {
         Row: {
@@ -97,6 +99,7 @@ export type Database = {
           last_session_date?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       friendships: {
         Row: {
@@ -119,6 +122,7 @@ export type Database = {
           status?: 'pending' | 'accepted' | 'declined';
           updated_at?: string;
         };
+        Relationships: [];
       };
       challenges: {
         Row: {
@@ -154,6 +158,7 @@ export type Database = {
           challenged_duration?: number | null;
           completed_at?: string | null;
         };
+        Relationships: [];
       };
       challenge_records: {
         Row: {
@@ -173,6 +178,7 @@ export type Database = {
           losses?: number;
           total_challenges?: number;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -183,6 +189,7 @@ export type Database = {
           session_count: number;
           total_seconds: number;
         };
+        Relationships: [];
       };
       user_stats: {
         Row: {
@@ -191,11 +198,12 @@ export type Database = {
           best_session_seconds: number;
           total_sessions: number;
         };
+        Relationships: [];
       };
     };
     Functions: {
       end_session: {
-        Args: { p_session_id: string; p_ended_reason: string; p_missed_content?: Record<string, number> };
+        Args: { p_session_id: string; p_ended_reason: string; p_missed_content?: Json };
         Returns: number;
       };
       update_streak: {
@@ -227,5 +235,7 @@ export type Database = {
         Returns: undefined;
       };
     };
+    Enums: {};
+    CompositeTypes: {};
   };
 };

@@ -2,12 +2,24 @@ import { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useSegments, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '@/providers/auth-provider';
 import { SessionProvider } from '@/providers/session-provider';
 import { useAuth } from '@/hooks/use-auth';
+
+// Configure how notifications appear when app is in foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -18,6 +30,11 @@ function RootLayoutNav() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  // Request notification permissions on mount
+  useEffect(() => {
+    Notifications.requestPermissionsAsync();
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
