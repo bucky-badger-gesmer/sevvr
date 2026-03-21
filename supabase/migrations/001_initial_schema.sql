@@ -171,7 +171,8 @@ CREATE POLICY "Anyone can read challenge records"
 -- VIEWS
 -- ============================================================
 
-CREATE VIEW public.daily_session_totals AS
+CREATE VIEW public.daily_session_totals
+WITH (security_invoker = true) AS
 SELECT
   user_id,
   DATE(started_at) AS session_date,
@@ -181,7 +182,8 @@ FROM public.sessions
 WHERE ended_at IS NOT NULL
 GROUP BY user_id, DATE(started_at);
 
-CREATE VIEW public.user_stats AS
+CREATE VIEW public.user_stats
+WITH (security_invoker = true) AS
 SELECT
   user_id,
   COALESCE(SUM(duration_seconds), 0)::integer AS total_sever_seconds,

@@ -194,6 +194,10 @@ export type Database = {
       };
     };
     Functions: {
+      end_session: {
+        Args: { p_session_id: string; p_ended_reason: string; p_missed_content?: Record<string, number> };
+        Returns: number;
+      };
       update_streak: {
         Args: { p_user_id: string };
         Returns: undefined;

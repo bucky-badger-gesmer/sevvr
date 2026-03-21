@@ -11,12 +11,13 @@
 | Animations | react-native-reanimated | 4.1.1 | Installed |
 | Gestures | react-native-gesture-handler | 2.28.0 | Installed |
 | Haptics | expo-haptics | 15.0.8 | Installed |
-| Backend | Supabase (Auth + DB + Realtime) | JS SDK v2 | **To install** |
-| Local Storage | @react-native-async-storage/async-storage | latest | **To install** |
-| Push | expo-notifications | latest | **To install** |
-| Sensors | expo-sensors (Accelerometer) | latest | **To install** |
-| Sharing | expo-sharing | latest | **To install** |
-| Device Info | expo-device | latest | **To install** |
+| Backend | Supabase (Auth + DB + Realtime) | JS SDK v2 | Installed |
+| Local Storage | @react-native-async-storage/async-storage | 2.2.0 | Installed |
+| Push | expo-notifications | 0.32.16 | Installed |
+| Sensors | expo-sensors (Accelerometer) | 15.0.8 | Installed |
+| Sharing | expo-sharing | 14.0.8 | Installed |
+| Device Info | expo-device | 8.0.10 | Installed |
+| Unique IDs | nanoid | 5.1.7 | Installed |
 
 ## Key Architecture Decisions
 

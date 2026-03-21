@@ -8,34 +8,51 @@ import { useAuth } from '@/hooks/use-auth';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export default function LoginScreen() {
-  const { signIn } = useAuth();
+export default function ForgotPasswordScreen() {
+  const { resetPassword } = useAuth();
   const colorScheme = useColorScheme() ?? 'light';
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async () => {
-    if (!email || !password) {
-      setError('Please fill in all fields.');
+  const handleReset = async () => {
+    if (!email) {
+      setError('Please enter your email.');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      await signIn(email, password);
+      await resetPassword(email);
+      setSent(true);
     } catch (e: any) {
-      setError(e.message ?? 'Sign in failed.');
+      setError(e.message ?? 'Failed to send reset link.');
     } finally {
       setLoading(false);
     }
   };
 
+  if (sent) {
+    return (
+      <ThemedView style={styles.container}>
+        <ThemedText type="title" style={styles.title}>Check Your Email</ThemedText>
+        <ThemedText style={styles.subtitle}>
+          We sent a password reset link to {email}
+        </ThemedText>
+        <Link href="/(auth)/login" style={styles.link}>
+          <ThemedText type="link">Back to Log In</ThemedText>
+        </Link>
+      </ThemedView>
+    );
+  }
+
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>sevvr</ThemedText>
-      <ThemedText style={styles.subtitle}>Put your phone down. Compete.</ThemedText>
+      <ThemedText type="title" style={styles.title}>Reset Password</ThemedText>
+      <ThemedText style={styles.subtitle}>
+        Enter your email and we'll send you a reset link.
+      </ThemedText>
 
       <TextInput
         style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
@@ -47,36 +64,23 @@ export default function LoginScreen() {
         keyboardType="email-address"
         textContentType="emailAddress"
       />
-      <TextInput
-        style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        placeholder="Password"
-        placeholderTextColor={Colors[colorScheme].icon}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        textContentType="password"
-      />
 
       {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
 
       <TouchableOpacity
         style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
-        onPress={handleSignIn}
+        onPress={handleReset}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <ThemedText style={styles.buttonText}>Log In</ThemedText>
+          <ThemedText style={styles.buttonText}>Send Reset Link</ThemedText>
         )}
       </TouchableOpacity>
 
-      <Link href="/(auth)/forgot-password" style={styles.link}>
-        <ThemedText type="link">Forgot Password?</ThemedText>
-      </Link>
-
-      <Link href="/(auth)/signup" style={styles.link}>
-        <ThemedText type="link">Don't have an account? Sign Up</ThemedText>
+      <Link href="/(auth)/login" style={styles.link}>
+        <ThemedText type="link">Back to Log In</ThemedText>
       </Link>
     </ThemedView>
   );

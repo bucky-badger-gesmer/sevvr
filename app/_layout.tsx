@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '@/providers/auth-provider';
+import { SessionProvider } from '@/providers/session-provider';
 import { useAuth } from '@/hooks/use-auth';
 
 export const unstable_settings = {
@@ -35,6 +36,15 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(modals)"
+          options={{ presentation: 'modal', headerShown: false }}
+        />
+        <Stack.Screen
+          name="challenge/[id]"
+          options={{ title: 'Challenge Invite' }}
+        />
+        <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
@@ -44,7 +54,9 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <SessionProvider>
+        <RootLayoutNav />
+      </SessionProvider>
     </AuthProvider>
   );
 }
