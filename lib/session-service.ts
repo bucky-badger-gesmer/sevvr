@@ -1,12 +1,12 @@
 import { supabase } from './supabase';
 import { calculateMissedContent } from '@/constants/missed-content';
 
-export async function startSession(userId: string) {
+export async function startSession(userId: string, startedAt?: Date) {
   const { data, error } = await supabase
     .from('sessions')
     .insert({
       user_id: userId,
-      started_at: new Date().toISOString(),
+      started_at: (startedAt ?? new Date()).toISOString(),
     })
     .select()
     .single();

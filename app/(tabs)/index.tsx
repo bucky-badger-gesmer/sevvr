@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabase';
 
 export default function HomeScreen() {
-  const { sessionState, activeSession, dispatch, startSession, endSession } = useSession();
+  const { sessionState, activeSession, dismissMessage, dispatch } = useSession();
   const { user } = useAuth();
   const router = useRouter();
   const [streak, setStreak] = useState(0);
@@ -52,6 +52,13 @@ export default function HomeScreen() {
     }
   }, [sessionState, router]);
 
+  // Auto-clear dismiss message after 3 seconds
+  useEffect(() => {
+    if (!dismissMessage) return;
+    const timer = setTimeout(() => dispatch({ type: 'DISMISS' }), 3000);
+    return () => clearTimeout(timer);
+  }, [dismissMessage, dispatch]);
+
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -59,16 +66,12 @@ export default function HomeScreen() {
     return `${m}m`;
   };
 
-  // Active session — show elapsed timer
+  // Active session — user briefly opened app during session
   if (sessionState === 'active' && activeSession) {
-    const elapsed = Math.round(
-      (Date.now() - activeSession.startedAt.getTime()) / 1000
-    );
     return (
       <ThemedView style={styles.container}>
         <ThemedText type="title">Session Active</ThemedText>
-        <ThemedText style={styles.elapsed}>{formatTime(elapsed)}</ThemedText>
-        <ThemedText style={styles.hint}>Lock your phone to keep going</ThemedText>
+        <ThemedText style={styles.hint}>Lock your phone to keep severing</ThemedText>
       </ThemedView>
     );
   }
@@ -83,6 +86,13 @@ export default function HomeScreen() {
         </ThemedText>
       </View>
 
+      {/* Dismiss message */}
+      {dismissMessage && (
+        <View style={styles.dismissBanner}>
+          <ThemedText style={styles.dismissText}>{dismissMessage}</ThemedText>
+        </View>
+      )}
+
       {/* Sever button */}
       <SeverButton
         onFillComplete={() => dispatch({ type: 'FILL_COMPLETE' })}
@@ -94,10 +104,10 @@ export default function HomeScreen() {
         <StreakBadge count={streak} />
       </View>
 
-      {/* Countdown overlay */}
+      {/* Countdown overlay — lock phone during this window */}
       {sessionState === 'countdown' && (
         <CountdownOverlay
-          onComplete={() => startSession()}
+          onComplete={() => dispatch({ type: 'CANCEL', message: "Phone wasn't locked in time" })}
           onCancel={() => dispatch({ type: 'CANCEL' })}
         />
       )}
@@ -122,13 +132,20 @@ const styles = StyleSheet.create({
   streakContainer: {
     marginTop: 32,
   },
-  elapsed: {
-    fontSize: 48,
-    fontWeight: '700',
-    marginTop: 12,
-  },
   hint: {
     marginTop: 8,
     opacity: 0.5,
+  },
+  dismissBanner: {
+    position: 'absolute',
+    top: 120,
+    backgroundColor: 'rgba(229, 62, 62, 0.15)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  dismissText: {
+    color: '#e53e3e',
+    fontSize: 14,
   },
 });

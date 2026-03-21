@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -28,6 +29,13 @@ function triggerLightHaptic() {
 
 export function SeverButton({ onFillComplete, disabled }: SeverButtonProps) {
   const progress = useSharedValue(0);
+
+  // Reset progress when button becomes enabled again (e.g., after cancel)
+  useEffect(() => {
+    if (!disabled && progress.value >= 1) {
+      progress.value = withTiming(0, { duration: 300 });
+    }
+  }, [disabled, progress]);
 
   const onPressIn = () => {
     if (disabled) return;

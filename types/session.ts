@@ -24,7 +24,7 @@ export type SessionAction =
   | { type: 'RELEASE_HOLD' }
   | { type: 'FILL_COMPLETE' }
   | { type: 'COUNTDOWN_COMPLETE' }
-  | { type: 'CANCEL' }
+  | { type: 'CANCEL'; message?: string }
   | { type: 'SESSION_STARTED'; session: ActiveSession }
   | { type: 'SESSION_ENDED'; completed: CompletedSession }
   | { type: 'RESTORE_SESSION'; session: ActiveSession }
