@@ -3,11 +3,11 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-export default function HomeScreen() {
+export default function StatsScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">sevvr</ThemedText>
-      <ThemedText>Sever button coming soon.</ThemedText>
+      <ThemedText type="title">Stats</ThemedText>
+      <ThemedText>Session history and calendar coming soon.</ThemedText>
     </ThemedView>
   );
 }
