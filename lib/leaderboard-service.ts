@@ -8,14 +8,15 @@ export async function getFriendsLeaderboard(userId: string): Promise<Leaderboard
 
   if (error) throw error;
 
-  return (data ?? []).map((row: any, index: number) => ({
+  const filtered = (data ?? []).filter((row: any) => row.user_id !== userId);
+  return filtered.map((row: any, index: number) => ({
     rank: index + 1,
     userId: row.user_id,
     username: row.username,
     displayName: row.display_name,
     avatarUrl: row.avatar_url,
     weeklySeconds: row.weekly_seconds,
-    isCurrentUser: row.user_id === userId,
+    isCurrentUser: false,
   }));
 }
 
