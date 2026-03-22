@@ -33,16 +33,20 @@ export default function HomeScreen() {
           .single();
         if (streakData) setStreak(streakData.current_streak);
 
-        const today = new Date().toISOString().split('T')[0];
-        const { data: dailyData } = await supabase
-          .from('daily_session_totals')
-          .select('session_count, total_seconds')
+        // Use local timezone for "today" range
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+        const { data: todaySessions } = await supabase
+          .from('sessions')
+          .select('duration_seconds')
           .eq('user_id', user.id)
-          .eq('session_date', today)
-          .maybeSingle();
-        if (dailyData) {
-          setDailySeconds(dailyData.total_seconds);
-          setDailyCount(dailyData.session_count);
+          .not('ended_at', 'is', null)
+          .gte('started_at', startOfDay)
+          .lt('started_at', endOfDay);
+        if (todaySessions) {
+          setDailyCount(todaySessions.length);
+          setDailySeconds(todaySessions.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0));
         }
       })();
     }, [user])
