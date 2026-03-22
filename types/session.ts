@@ -10,6 +10,7 @@ export type MissedContent = {
 export type ActiveSession = {
   id: string;
   startedAt: Date;
+  challengeId?: string | null;
 };
 
 export type CompletedSession = {
@@ -28,4 +29,5 @@ export type SessionAction =
   | { type: 'SESSION_STARTED'; session: ActiveSession }
   | { type: 'SESSION_ENDED'; completed: CompletedSession }
   | { type: 'RESTORE_SESSION'; session: ActiveSession }
-  | { type: 'DISMISS' };
+  | { type: 'DISMISS' }
+  | { type: 'SET_CHALLENGE'; challengeId: string | null };

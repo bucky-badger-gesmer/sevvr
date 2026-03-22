@@ -3,6 +3,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack, useSegments, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -44,7 +45,14 @@ function RootLayoutNav() {
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (user && inAuthGroup) {
-      router.replace('/(tabs)');
+      AsyncStorage.getItem('pending_challenge_token').then((token) => {
+        if (token) {
+          AsyncStorage.removeItem('pending_challenge_token');
+          router.replace(`/challenge/${token}` as never);
+        } else {
+          router.replace('/(tabs)');
+        }
+      });
     }
   }, [user, isLoading, segments]);
 

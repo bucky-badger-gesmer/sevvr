@@ -4,18 +4,17 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { formatDuration } from '@/lib/format';
-import type { Database } from '@/types/database';
-
-type Challenge = Database['public']['Tables']['challenges']['Row'];
+import type { Challenge } from '@/types/social';
 
 type ChallengeCardProps = {
   challenge: Challenge;
   currentUserId: string;
   onAccept?: () => void;
   onDecline?: () => void;
+  onStart?: () => void;
 };
 
-export function ChallengeCard({ challenge, currentUserId, onAccept, onDecline }: ChallengeCardProps) {
+export function ChallengeCard({ challenge, currentUserId, onAccept, onDecline, onStart }: ChallengeCardProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const isSender = challenge.challenger_id === currentUserId;
 
@@ -49,10 +48,28 @@ export function ChallengeCard({ challenge, currentUserId, onAccept, onDecline }:
   }
 
   if (challenge.status === 'accepted' || challenge.status === 'active') {
+    const myDuration = isSender ? challenge.challenger_duration : challenge.challenged_duration;
+    const alreadyGone = myDuration !== null;
+
     return (
       <ThemedView style={styles.card}>
         <ThemedText style={styles.status}>Challenge active</ThemedText>
-        <ThemedText style={styles.sub}>Start a sever session to compete!</ThemedText>
+        {alreadyGone ? (
+          <>
+            <ThemedText style={styles.sub}>Your time: {formatDuration(myDuration!)}</ThemedText>
+            <ThemedText style={styles.sub}>Waiting for opponent...</ThemedText>
+          </>
+        ) : (
+          <>
+            <ThemedText style={styles.sub}>Start a sever session to compete!</ThemedText>
+            <TouchableOpacity
+              style={[styles.startBtn, { backgroundColor: Colors[colorScheme].tint }]}
+              onPress={onStart}
+            >
+              <ThemedText style={styles.btnText}>Start your session</ThemedText>
+            </TouchableOpacity>
+          </>
+        )}
       </ThemedView>
     );
   }
@@ -95,6 +112,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 8,
+  },
+  startBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   btnText: {
     color: '#fff',

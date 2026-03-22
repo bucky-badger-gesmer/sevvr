@@ -1,3 +1,7 @@
+import type { Database } from '@/types/database';
+
+export type Challenge = Database['public']['Tables']['challenges']['Row'];
+
 export type LeaderboardEntry = {
   rank: number;
   userId: string;

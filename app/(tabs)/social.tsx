@@ -1,22 +1,30 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { StyleSheet, View, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { LeaderboardRow } from '@/components/leaderboard-row';
 import { FriendRequestCard } from '@/components/friend-request-card';
+import { ChallengeCard } from '@/components/challenge-card';
 import { useAuth } from '@/hooks/use-auth';
+import { useSession } from '@/hooks/use-session';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import * as socialService from '@/lib/social-service';
 import * as leaderboardService from '@/lib/leaderboard-service';
-import type { LeaderboardEntry, Friend, FriendRequest } from '@/types/social';
+import * as challengeService from '@/lib/challenge-service';
+import type { LeaderboardEntry, Friend, FriendRequest, Challenge } from '@/types/social';
 
-type Tab = 'friends-lb' | 'global-lb' | 'friends';
+type Tab = 'friends-lb' | 'global-lb' | 'friends' | 'challenges';
 
 export default function SocialScreen() {
   const { user } = useAuth();
+  const { dispatch: sessionDispatch } = useSession();
   const colorScheme = useColorScheme() ?? 'light';
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>('friends-lb');
 
   // Leaderboard state
@@ -29,6 +37,10 @@ export default function SocialScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Friend[]>([]);
 
+  // Challenges state
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [showFriendPicker, setShowFriendPicker] = useState(false);
+
   const loadData = useCallback(async () => {
     if (!user) return;
 
@@ -38,6 +50,13 @@ export default function SocialScreen() {
     } else if (tab === 'global-lb') {
       const data = await leaderboardService.getGlobalLeaderboard(user.id);
       setGlobalLB(data);
+    } else if (tab === 'challenges') {
+      const [challengesData, friendsData] = await Promise.all([
+        challengeService.getActiveChallenges(user.id),
+        socialService.getFriends(user.id),
+      ]);
+      setChallenges(challengesData);
+      setFriends(friendsData);
     } else {
       const [friendsData, requestsData] = await Promise.all([
         socialService.getFriends(user.id),
@@ -51,6 +70,8 @@ export default function SocialScreen() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
 
   // Debounced search
   useEffect(() => {
@@ -81,6 +102,37 @@ export default function SocialScreen() {
     setSearchResults([]);
   };
 
+  const handleChallengeFriend = async (friendId: string) => {
+    await challengeService.createChallenge(friendId);
+    setShowFriendPicker(false);
+    loadData();
+  };
+
+  const handleAcceptChallenge = async (challengeId: string) => {
+    await challengeService.acceptChallenge(challengeId);
+    loadData();
+  };
+
+  const handleDeclineChallenge = async (challengeId: string) => {
+    await challengeService.declineChallenge(challengeId);
+    loadData();
+  };
+
+  const handleStartChallenge = (challengeId: string) => {
+    sessionDispatch({ type: 'SET_CHALLENGE', challengeId });
+    router.push('/(tabs)');
+  };
+
+  const handleSmsInvite = async () => {
+    const challenge = await challengeService.createChallenge(null);
+    const inviteUrl = `https://sevvr.app/challenge/${challenge.invite_token}`;
+    const message = encodeURIComponent(
+      `I challenged you to put your phone down! Download sevvr and see if you can beat me: ${inviteUrl}`
+    );
+    Linking.openURL(`sms:?body=${message}`);
+    loadData();
+  };
+
   const TabButton = ({ id, label }: { id: Tab; label: string }) => (
     <TouchableOpacity
       style={[styles.tabBtn, tab === id && { backgroundColor: Colors[colorScheme].tint }]}
@@ -98,6 +150,7 @@ export default function SocialScreen() {
       <View style={styles.tabBar}>
         <TabButton id="friends-lb" label="Friends" />
         <TabButton id="global-lb" label="Global" />
+        <TabButton id="challenges" label="Challenges" />
         <TabButton id="friends" label="Manage" />
       </View>
 
@@ -123,6 +176,74 @@ export default function SocialScreen() {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <ThemedText style={styles.empty}>No one has severed this week yet!</ThemedText>
+          }
+        />
+      )}
+
+      {/* Challenges */}
+      {tab === 'challenges' && (
+        <FlatList
+          data={challenges}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            <>
+              <View style={styles.challengeActions}>
+                <TouchableOpacity
+                  style={[styles.challengeBtn, { backgroundColor: Colors[colorScheme].tint }]}
+                  onPress={() => setShowFriendPicker(!showFriendPicker)}
+                >
+                  <ThemedText style={styles.challengeBtnText}>Challenge a Friend</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.challengeBtn, styles.challengeBtnOutline, { borderColor: Colors[colorScheme].tint }]}
+                  onPress={handleSmsInvite}
+                >
+                  <ThemedText style={[styles.challengeBtnText, { color: Colors[colorScheme].tint }]}>
+                    Invite via SMS
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+
+              {showFriendPicker && (
+                <View style={styles.friendPicker}>
+                  <ThemedText style={styles.sectionTitle}>Pick a friend to challenge</ThemedText>
+                  {friends.length === 0 ? (
+                    <ThemedText style={styles.empty}>Add friends first!</ThemedText>
+                  ) : (
+                    friends.map((friend) => (
+                      <View key={friend.id} style={styles.searchRow}>
+                        <ThemedText>@{friend.username}</ThemedText>
+                        <TouchableOpacity
+                          style={[styles.addBtn, { backgroundColor: Colors[colorScheme].tint }]}
+                          onPress={() => handleChallengeFriend(friend.id)}
+                        >
+                          <ThemedText style={styles.addBtnText}>Challenge</ThemedText>
+                        </TouchableOpacity>
+                      </View>
+                    ))
+                  )}
+                </View>
+              )}
+
+              {challenges.length > 0 && (
+                <ThemedText style={styles.sectionTitle}>Active Challenges</ThemedText>
+              )}
+            </>
+          }
+          renderItem={({ item }) => (
+            <ChallengeCard
+              challenge={item}
+              currentUserId={user?.id ?? ''}
+              onAccept={() => handleAcceptChallenge(item.id)}
+              onDecline={() => handleDeclineChallenge(item.id)}
+              onStart={() => handleStartChallenge(item.id)}
+            />
+          )}
+          ListEmptyComponent={
+            !showFriendPicker ? (
+              <ThemedText style={styles.empty}>No active challenges. Challenge a friend!</ThemedText>
+            ) : null
           }
         />
       )}
@@ -215,7 +336,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 16,
     marginBottom: 12,
-    gap: 8,
+    gap: 6,
   },
   tabBtn: {
     flex: 1,
@@ -224,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
   tabTextActive: {
@@ -291,5 +412,30 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  challengeActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 4,
+    marginTop: 4,
+  },
+  challengeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  challengeBtnOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+  },
+  challengeBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  friendPicker: {
+    marginTop: 8,
+    marginBottom: 4,
   },
 });

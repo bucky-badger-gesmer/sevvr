@@ -9,6 +9,7 @@ import type {
 } from '@/types/session';
 import { useAuth } from '@/hooks/use-auth';
 import * as sessionService from '@/lib/session-service';
+import * as challengeService from '@/lib/challenge-service';
 import { calculateMissedContent } from '@/constants/missed-content';
 
 const ACTIVE_SESSION_KEY = 'active_session';
@@ -19,6 +20,7 @@ type State = {
   activeSession: ActiveSession | null;
   lastCompletedSession: CompletedSession | null;
   dismissMessage: string | null;
+  pendingChallengeId: string | null;
 };
 
 export type SessionContextType = State & {
@@ -48,6 +50,8 @@ function reducer(state: State, action: SessionAction): State {
       };
     case 'DISMISS':
       return { ...state, sessionState: 'idle', lastCompletedSession: null, dismissMessage: null };
+    case 'SET_CHALLENGE':
+      return { ...state, pendingChallengeId: action.challengeId };
     default:
       return state;
   }
@@ -58,6 +62,7 @@ const initialState: State = {
   activeSession: null,
   lastCompletedSession: null,
   dismissMessage: null,
+  pendingChallengeId: null,
 };
 
 export function SessionProvider({ children }: { children: ReactNode }) {
@@ -84,7 +89,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // Check for orphaned active session (app was killed while session was active)
       const activeRaw = await AsyncStorage.getItem(ACTIVE_SESSION_KEY);
       if (activeRaw) {
-        const { sessionId, startedAt } = JSON.parse(activeRaw);
+        const { sessionId, startedAt, challengeId } = JSON.parse(activeRaw);
         const sessionStart = new Date(startedAt);
         const durationSeconds = Math.max(1, Math.round((Date.now() - sessionStart.getTime()) / 1000));
         const missedContent = calculateMissedContent(durationSeconds);
@@ -99,6 +104,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             const s = await sessionService.startSession(user.id, sessionStart);
             await sessionService.endSession(s.id, 'unlock', sessionStart);
           } catch {}
+        }
+
+        // Record duration for challenge if applicable
+        if (challengeId) {
+          try { await challengeService.recordChallengeDuration(challengeId, user.id, durationSeconds); } catch {}
         }
 
         dispatch({
@@ -124,28 +134,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         isStarting = true;
 
         const startedAt = new Date();
+        const challengeId = current.pendingChallengeId ?? null;
 
         // Write to AsyncStorage immediately
         AsyncStorage.setItem(
           ACTIVE_SESSION_KEY,
-          JSON.stringify({ sessionId: null, startedAt: startedAt.toISOString() })
+          JSON.stringify({ sessionId: null, startedAt: startedAt.toISOString(), challengeId })
         );
 
         dispatch({
           type: 'SESSION_STARTED',
-          session: { id: 'pending', startedAt },
+          session: { id: 'pending', startedAt, challengeId },
         });
 
+        // Clear pending challenge so future sessions aren't accidentally linked
+        dispatch({ type: 'SET_CHALLENGE', challengeId: null });
+
         // Create in Supabase (fire and forget — may not complete before app suspends)
-        sessionService.startSession(user.id, startedAt)
+        sessionService.startSession(user.id, startedAt, challengeId ?? undefined)
           .then((session) => {
             AsyncStorage.setItem(
               ACTIVE_SESSION_KEY,
-              JSON.stringify({ sessionId: session.id, startedAt: startedAt.toISOString() })
+              JSON.stringify({ sessionId: session.id, startedAt: startedAt.toISOString(), challengeId })
             );
             dispatch({
               type: 'SESSION_STARTED',
-              session: { id: session.id, startedAt },
+              session: { id: session.id, startedAt, challengeId },
             });
           })
           .catch(() => {})
@@ -162,7 +176,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (isEndingRef.current) return;
         isEndingRef.current = true;
 
-        const { id: sessionId, startedAt } = current.activeSession;
+        const { id: sessionId, startedAt, challengeId } = current.activeSession;
         const durationSeconds = Math.max(1, Math.round((Date.now() - startedAt.getTime()) / 1000));
         const missedContent = calculateMissedContent(durationSeconds);
 
@@ -178,6 +192,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         // End in Supabase
         if (sessionId && sessionId !== 'pending') {
           sessionService.endSession(sessionId, 'unlock', startedAt).catch(() => {});
+        }
+
+        // Record duration for challenge if applicable
+        if (challengeId) {
+          challengeService.recordChallengeDuration(challengeId, user.id, durationSeconds).catch(() => {});
         }
 
         dispatch({ type: 'SESSION_ENDED', completed });
