@@ -32,7 +32,8 @@ export function CalendarHeatmap({ activeDates, year, month, onMonthChange }: Cal
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
   const activeSet = new Set(activeDates);
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const prevMonth = () => {
     if (month === 1) onMonthChange(year - 1, 12);

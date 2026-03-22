@@ -46,7 +46,10 @@ export async function getCalendarData(userId: string, year: number, month: numbe
 
   // Extract unique dates
   const dates = new Set(
-    (data ?? []).map((s) => s.started_at.split('T')[0])
+    (data ?? []).map((s) => {
+      const d = new Date(s.started_at);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })
   );
   return Array.from(dates);
 }
