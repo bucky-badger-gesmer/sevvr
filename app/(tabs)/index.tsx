@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,31 +20,33 @@ export default function HomeScreen() {
   const [dailySeconds, setDailySeconds] = useState(0);
   const [dailyCount, setDailyCount] = useState(0);
 
-  // Fetch streak and daily stats
-  useEffect(() => {
-    if (!user) return;
+  // Refetch streak and daily stats on tab focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
 
-    (async () => {
-      const { data: streakData } = await supabase
-        .from('streaks')
-        .select('current_streak')
-        .eq('user_id', user.id)
-        .single();
-      if (streakData) setStreak(streakData.current_streak);
+      (async () => {
+        const { data: streakData } = await supabase
+          .from('streaks')
+          .select('current_streak')
+          .eq('user_id', user.id)
+          .single();
+        if (streakData) setStreak(streakData.current_streak);
 
-      const today = new Date().toISOString().split('T')[0];
-      const { data: dailyData } = await supabase
-        .from('daily_session_totals')
-        .select('session_count, total_seconds')
-        .eq('user_id', user.id)
-        .eq('session_date', today)
-        .maybeSingle();
-      if (dailyData) {
-        setDailySeconds(dailyData.total_seconds);
-        setDailyCount(dailyData.session_count);
-      }
-    })();
-  }, [user, sessionState]);
+        const today = new Date().toISOString().split('T')[0];
+        const { data: dailyData } = await supabase
+          .from('daily_session_totals')
+          .select('session_count, total_seconds')
+          .eq('user_id', user.id)
+          .eq('session_date', today)
+          .maybeSingle();
+        if (dailyData) {
+          setDailySeconds(dailyData.total_seconds);
+          setDailyCount(dailyData.session_count);
+        }
+      })();
+    }, [user])
+  );
 
   // Navigate to Life Unlocked when session ends
   useEffect(() => {

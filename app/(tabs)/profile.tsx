@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -19,18 +20,20 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState({ total_sever_seconds: 0, best_session_seconds: 0, total_sessions: 0 });
   const [streak, setStreak] = useState({ currentStreak: 0, longestStreak: 0 });
 
-  useEffect(() => {
-    if (!user) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
 
-    (async () => {
-      const [statsData, streakData] = await Promise.all([
-        statsService.getUserStats(user.id),
-        streakService.getStreak(user.id),
-      ]);
-      setStats(statsData);
-      setStreak(streakData);
-    })();
-  }, [user]);
+      (async () => {
+        const [statsData, streakData] = await Promise.all([
+          statsService.getUserStats(user.id),
+          streakService.getStreak(user.id),
+        ]);
+        setStats(statsData);
+        setStreak(streakData);
+      })();
+    }, [user])
+  );
 
   const handleSignOut = async () => {
     setLoading(true);

@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { StyleSheet, View, FlatList } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -28,21 +29,23 @@ export default function StatsScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  // Fetch stats and calendar data
-  useEffect(() => {
-    if (!user) return;
+  // Refetch stats and calendar on tab focus
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
 
-    (async () => {
-      const [statsData, calData, best] = await Promise.all([
-        statsService.getUserStats(user.id),
-        statsService.getCalendarData(user.id, calYear, calMonth),
-        statsService.getPersonalBest(user.id),
-      ]);
-      setStats(statsData);
-      setActiveDates(calData);
-      setBestId(best?.id ?? null);
-    })();
-  }, [user, calYear, calMonth]);
+      (async () => {
+        const [statsData, calData, best] = await Promise.all([
+          statsService.getUserStats(user.id),
+          statsService.getCalendarData(user.id, calYear, calMonth),
+          statsService.getPersonalBest(user.id),
+        ]);
+        setStats(statsData);
+        setActiveDates(calData);
+        setBestId(best?.id ?? null);
+      })();
+    }, [user, calYear, calMonth])
+  );
 
   // Fetch session history
   const loadSessions = useCallback(async (pageNum: number) => {
@@ -60,9 +63,11 @@ export default function StatsScreen() {
     setLoading(false);
   }, [user, loading]);
 
-  useEffect(() => {
-    loadSessions(0);
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      loadSessions(0);
+    }, [user])
+  );
 
   const handleMonthChange = (year: number, month: number) => {
     setCalYear(year);
