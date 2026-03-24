@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import { StyleSheet, View, FlatList, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -7,29 +7,52 @@ import { ThemedView } from '@/components/themed-view';
 import { CalendarHeatmap } from '@/components/calendar-heatmap';
 import { StatCard } from '@/components/stat-card';
 import { SessionListItem } from '@/components/session-list-item';
+import { BotanicalEmptyState } from '@/components/botanical-empty-state';
 import { useAuth } from '@/hooks/use-auth';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import * as statsService from '@/lib/stats-service';
 import { formatDurationShort } from '@/lib/format';
 import type { Database } from '@/types/database';
 
 type Session = Database['public']['Tables']['sessions']['Row'];
 
-const PAGE_SIZE = 20;
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function getToday(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function formatDateLabel(dateStr: string): string {
+  const parts = dateStr.split('-');
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  const monthName = d.toLocaleDateString('en-US', { month: 'long' });
+  const day = d.getDate();
+  return `${DAY_NAMES[d.getDay()]}, ${monthName} ${day}`;
+}
+
+function addDays(dateStr: string, days: number): string {
+  const parts = dateStr.split('-');
+  const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 export default function StatsScreen() {
   const { user } = useAuth();
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const now = new Date();
+  const today = getToday();
   const [calYear, setCalYear] = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth() + 1);
   const [activeDates, setActiveDates] = useState<string[]>([]);
   const [stats, setStats] = useState({ total_sever_seconds: 0, best_session_seconds: 0, total_sessions: 0 });
   const [sessions, setSessions] = useState<Session[]>([]);
   const [bestId, setBestId] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>(today);
 
-  // Refetch stats and calendar on tab focus
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
@@ -47,31 +70,35 @@ export default function StatsScreen() {
     }, [user, calYear, calMonth])
   );
 
-  // Fetch session history
-  const loadSessions = useCallback(async (pageNum: number) => {
-    if (!user || loading) return;
-    setLoading(true);
-
-    const result = await statsService.getSessionHistory(user.id, pageNum, PAGE_SIZE);
-    if (pageNum === 0) {
-      setSessions(result.sessions);
-    } else {
-      setSessions((prev) => [...prev, ...result.sessions]);
-    }
-    setHasMore(result.hasMore);
-    setPage(pageNum);
-    setLoading(false);
-  }, [user, loading]);
-
   useFocusEffect(
     useCallback(() => {
-      loadSessions(0);
-    }, [user])
+      if (!user || !selectedDate) return;
+
+      (async () => {
+        const data = await statsService.getSessionsForDate(user.id, selectedDate);
+        setSessions(data);
+      })();
+    }, [user, selectedDate])
   );
 
   const handleMonthChange = (year: number, month: number) => {
     setCalYear(year);
     setCalMonth(month);
+  };
+
+  const handleDayPress = (dateStr: string) => {
+    setSelectedDate(dateStr);
+  };
+
+  const handlePrevDay = () => {
+    setSelectedDate(addDays(selectedDate, -1));
+  };
+
+  const handleNextDay = () => {
+    const next = addDays(selectedDate, 1);
+    if (next <= today) {
+      setSelectedDate(next);
+    }
   };
 
   const renderSession = ({ item }: { item: Session }) => (
@@ -80,23 +107,45 @@ export default function StatsScreen() {
 
   const ListHeader = () => (
     <>
-      {/* Calendar */}
       <CalendarHeatmap
         activeDates={activeDates}
         year={calYear}
         month={calMonth}
+        selectedDate={selectedDate}
         onMonthChange={handleMonthChange}
+        onDayPress={handleDayPress}
       />
 
-      {/* Stat cards */}
       <View style={styles.statRow}>
-        <StatCard label="Total Time" value={formatDurationShort(stats.total_sever_seconds)} />
-        <StatCard label="Best" value={formatDurationShort(stats.best_session_seconds)} highlight />
-        <StatCard label="Sessions" value={String(stats.total_sessions)} />
+        <StatCard label="Total Time" value={formatDurationShort(stats.total_sever_seconds)} icon="⏱" />
+        <StatCard label="Best" value={formatDurationShort(stats.best_session_seconds)} highlight icon="🌸" />
+        <StatCard label="Sessions" value={String(stats.total_sessions)} icon="📊" />
       </View>
 
-      {/* Section header */}
-      <ThemedText style={styles.sectionTitle}>Session History</ThemedText>
+      <View style={[styles.sectionDivider, { backgroundColor: colors.border }]} />
+
+      {/* Day header with navigation */}
+      <View style={styles.dayHeader}>
+        <TouchableOpacity
+          onPress={handlePrevDay}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <ThemedText style={[styles.dayNav, { color: colors.muted }]}>‹</ThemedText>
+        </TouchableOpacity>
+
+        <ThemedText style={styles.dayTitle}>{formatDateLabel(selectedDate)}</ThemedText>
+
+        <TouchableOpacity
+          onPress={handleNextDay}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          disabled={selectedDate >= today}
+        >
+          <ThemedText style={[
+            styles.dayNav,
+            { color: selectedDate >= today ? colors.border : colors.muted },
+          ]}>›</ThemedText>
+        </TouchableOpacity>
+      </View>
     </>
   );
 
@@ -107,11 +156,13 @@ export default function StatsScreen() {
         renderItem={renderSession}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={ListHeader}
-        onEndReached={() => hasMore && loadSessions(page + 1)}
-        onEndReachedThreshold={0.5}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <ThemedText style={styles.empty}>No sessions yet. Start severing!</ThemedText>
+          <BotanicalEmptyState
+            icon="🌱"
+            title="No sessions on this day"
+            subtitle="Tap another day in the calendar to see its sessions"
+          />
         }
       />
     </ThemedView>
@@ -132,14 +183,22 @@ const styles = StyleSheet.create({
     gap: 8,
     marginVertical: 16,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+  sectionDivider: {
+    height: 1,
+    marginBottom: 16,
   },
-  empty: {
-    textAlign: 'center',
-    opacity: 0.5,
-    marginTop: 24,
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  dayTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  dayNav: {
+    fontSize: 24,
+    fontWeight: '300',
   },
 });

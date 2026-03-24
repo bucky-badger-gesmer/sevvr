@@ -1,12 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { formatDurationShort } from '@/lib/format';
 import type { LeaderboardEntry } from '@/types/social';
 
-const MEDALS = ['', '\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49']; // gold, silver, bronze
+const RANK_ICONS = ['', '🌸', '🌿', '🌱'];
 
 type LeaderboardRowProps = {
   entry: LeaderboardEntry;
@@ -14,20 +14,22 @@ type LeaderboardRowProps = {
 
 export function LeaderboardRow({ entry }: LeaderboardRowProps) {
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   return (
     <ThemedView
       style={[
         styles.row,
-        entry.isCurrentUser && { backgroundColor: Colors[colorScheme].tint + '15' },
+        { borderColor: colors.border },
+        entry.isCurrentUser && { backgroundColor: colors.tint + '10', borderColor: colors.tint + '30' },
       ]}
     >
       <View style={styles.left}>
         <ThemedText style={styles.rank}>
-          {entry.rank <= 3 ? MEDALS[entry.rank] : `${entry.rank}.`}
+          {entry.rank <= 3 ? RANK_ICONS[entry.rank] : `${entry.rank}.`}
         </ThemedText>
-        <View style={styles.avatar}>
-          <ThemedText style={styles.avatarText}>
+        <View style={[styles.avatar, { backgroundColor: colors.tint + '30' }]}>
+          <ThemedText style={[styles.avatarText, { color: colors.tint }]}>
             {(entry.username[0] ?? '?').toUpperCase()}
           </ThemedText>
         </View>
@@ -35,7 +37,7 @@ export function LeaderboardRow({ entry }: LeaderboardRowProps) {
           @{entry.username}
         </ThemedText>
       </View>
-      <ThemedText style={styles.time}>
+      <ThemedText style={[styles.time, { color: colors.muted }]}>
         {formatDurationShort(entry.weeklySeconds)}
       </ThemedText>
     </ThemedView>
@@ -47,9 +49,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
   },
   left: {
     flexDirection: 'row',
@@ -65,12 +68,10 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#333',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
   },
   time: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Menlo',
+    fontWeight: '500',
   },
 });

@@ -79,3 +79,20 @@ export async function getPersonalBest(userId: string) {
   if (error) throw error;
   return data;
 }
+
+export async function getSessionsForDate(userId: string, date: string) {
+  const startOfDay = `${date}T00:00:00.000Z`;
+  const endOfDay = `${date}T23:59:59.999Z`;
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .not('ended_at', 'is', null)
+    .gte('started_at', startOfDay)
+    .lte('started_at', endOfDay)
+    .order('started_at', { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}

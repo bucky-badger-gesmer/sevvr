@@ -3,13 +3,14 @@ import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSession } from '@/hooks/use-session';
 
 export default function LifeUnlockedModal() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const { lastCompletedSession, dispatch } = useSession();
 
   const duration = lastCompletedSession?.durationSeconds ?? 0;
@@ -41,13 +42,16 @@ export default function LifeUnlockedModal() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>LIFE UNLOCKED</ThemedText>
+      <ThemedText style={styles.bloom}>🌸</ThemedText>
+      <ThemedText type="display" style={styles.title}>Life Unlocked</ThemedText>
 
-      <ThemedText style={styles.duration}>{formatDuration(duration)}</ThemedText>
+      <ThemedText type="mono" style={[styles.duration, { color: colors.tint }]}>
+        {formatDuration(duration)}
+      </ThemedText>
 
       {missed && (
-        <View style={styles.missedContainer}>
-          <ThemedText style={styles.missedHeader}>While you were gone:</ThemedText>
+        <View style={[styles.missedContainer, { backgroundColor: colors.surface }]}>
+          <ThemedText style={[styles.missedHeader, { color: colors.muted }]}>While you were gone:</ThemedText>
           <ThemedText style={styles.missedItem}>{missed.tweets} tweets</ThemedText>
           <ThemedText style={styles.missedItem}>{missed.tiktoks} TikToks</ThemedText>
           <ThemedText style={styles.missedItem}>{missed.instagram_posts} IG posts</ThemedText>
@@ -56,14 +60,14 @@ export default function LifeUnlockedModal() {
       )}
 
       <TouchableOpacity
-        style={[styles.shareButton, { borderColor: Colors[colorScheme].tint }]}
+        style={[styles.shareButton, { borderColor: colors.border }]}
         onPress={handleShare}
       >
-        <ThemedText style={{ color: Colors[colorScheme].tint }}>Share</ThemedText>
+        <ThemedText style={{ color: colors.tint, fontWeight: '500' }}>Share</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.doneButton, { backgroundColor: Colors[colorScheme].tint }]}
+        style={[styles.doneButton, { backgroundColor: colors.tint }]}
         onPress={handleDone}
       >
         <ThemedText style={styles.doneText}>Done</ThemedText>
@@ -79,35 +83,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
+  bloom: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
   title: {
     marginBottom: 8,
+    letterSpacing: -1,
   },
   duration: {
     fontSize: 48,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 32,
   },
   missedContainer: {
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: 40,
+    padding: 20,
+    borderRadius: BorderRadius.lg,
   },
   missedHeader: {
-    opacity: 0.6,
     marginBottom: 8,
+    fontSize: 14,
   },
   missedItem: {
     fontSize: 18,
   },
   shareButton: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: BorderRadius.lg,
     paddingVertical: 14,
     paddingHorizontal: 48,
     marginBottom: 12,
   },
   doneButton: {
-    borderRadius: 8,
+    borderRadius: BorderRadius.lg,
     paddingVertical: 14,
     paddingHorizontal: 48,
   },
