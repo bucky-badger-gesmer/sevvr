@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, View } from 'react-native';
 import { Link } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/hooks/use-auth';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function SignupScreen() {
   const { signUp } = useAuth();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -47,54 +48,66 @@ export default function SignupScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>Create Account</ThemedText>
+      <View style={styles.header}>
+        <ThemedText style={styles.accent}>🌿</ThemedText>
+        <ThemedText type="display" style={styles.title}>Join</ThemedText>
+        <ThemedText style={[styles.subtitle, { color: colors.muted }]}>
+          Start your journey offline
+        </ThemedText>
+      </View>
 
-      <TextInput
-        style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        placeholder="Username"
-        placeholderTextColor={Colors[colorScheme].icon}
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-        textContentType="username"
-      />
-      <TextInput
-        style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        placeholder="Email"
-        placeholderTextColor={Colors[colorScheme].icon}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        textContentType="emailAddress"
-      />
-      <TextInput
-        style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        placeholder="Password (8+ characters)"
-        placeholderTextColor={Colors[colorScheme].icon}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        textContentType="newPassword"
-      />
+      <View style={styles.form}>
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          placeholder="Username"
+          placeholderTextColor={colors.muted}
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+          textContentType="username"
+        />
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          placeholder="Email"
+          placeholderTextColor={colors.muted}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+        />
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          placeholder="Password (8+ characters)"
+          placeholderTextColor={colors.muted}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          textContentType="newPassword"
+        />
 
-      {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+        {error ? <ThemedText style={[styles.error, { color: colors.error }]}>{error}</ThemedText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
-        onPress={handleSignUp}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <ThemedText style={styles.buttonText}>Create Account</ThemedText>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.tint }]}
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <ThemedText style={styles.buttonText}>Create Account</ThemedText>
+          )}
+        </TouchableOpacity>
+      </View>
 
-      <Link href="/(auth)/login" style={styles.link}>
-        <ThemedText type="link">Already have an account? Log In</ThemedText>
-      </Link>
+      <View style={styles.links}>
+        <Link href="/(auth)/login">
+          <ThemedText style={[styles.linkText, { color: colors.muted }]}>
+            Already have an account? Log In
+          </ThemedText>
+        </Link>
+      </View>
     </ThemedView>
   );
 }
@@ -105,24 +118,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
+  header: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  accent: {
+    fontSize: 32,
+    marginBottom: 12,
+  },
   title: {
     textAlign: 'center',
-    marginBottom: 32,
+    letterSpacing: -1,
+  },
+  subtitle: {
+    marginTop: 8,
+    fontSize: 15,
+  },
+  form: {
+    gap: 12,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: BorderRadius.lg,
+    padding: 16,
     fontSize: 16,
+    fontFamily: Typography.body.fontFamily,
   },
   error: {
-    color: '#e53e3e',
-    marginBottom: 12,
     textAlign: 'center',
+    fontSize: 14,
   },
   button: {
-    borderRadius: 8,
+    borderRadius: BorderRadius.lg,
     padding: 16,
     alignItems: 'center',
     marginTop: 4,
@@ -132,8 +159,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  link: {
-    marginTop: 20,
-    alignSelf: 'center',
+  links: {
+    alignItems: 'center',
+    marginTop: 32,
+  },
+  linkText: {
+    fontSize: 14,
   },
 });

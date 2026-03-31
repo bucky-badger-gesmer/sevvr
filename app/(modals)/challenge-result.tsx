@@ -1,23 +1,26 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function ChallengeResultModal() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Challenge Complete</ThemedText>
-      <ThemedText style={styles.subtitle}>Results will appear here</ThemedText>
+      <ThemedText style={styles.accent}>🌸</ThemedText>
+      <ThemedText type="heading" style={styles.title}>Challenge Complete</ThemedText>
+      <ThemedText style={[styles.subtitle, { color: colors.muted }]}>
+        Results will appear here
+      </ThemedText>
 
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
+        style={[styles.button, { backgroundColor: colors.tint }]}
         onPress={() => router.back()}
       >
         <ThemedText style={styles.buttonText}>Done</ThemedText>
@@ -31,16 +34,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    paddingHorizontal: 32,
+  },
+  accent: {
+    fontSize: 40,
+    marginBottom: 16,
+  },
+  title: {
+    marginBottom: 8,
   },
   subtitle: {
-    opacity: 0.6,
-    marginBottom: 24,
+    marginBottom: 32,
+    fontSize: 15,
   },
   button: {
-    borderRadius: 8,
-    paddingVertical: 14,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: 16,
     paddingHorizontal: 48,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',

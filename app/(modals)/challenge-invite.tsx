@@ -1,34 +1,39 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function ChallengeInviteModal() {
   const router = useRouter();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Challenge!</ThemedText>
-      <ThemedText style={styles.subtitle}>Someone challenged you to sever</ThemedText>
+      <ThemedText style={styles.accent}>🌿</ThemedText>
+      <ThemedText type="heading" style={styles.title}>Challenge!</ThemedText>
+      <ThemedText style={[styles.subtitle, { color: colors.muted }]}>
+        Someone challenged you to sever
+      </ThemedText>
 
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
-        onPress={() => router.back()}
-      >
-        <ThemedText style={styles.buttonText}>Accept</ThemedText>
-      </TouchableOpacity>
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.tint }]}
+          onPress={() => router.back()}
+        >
+          <ThemedText style={styles.buttonText}>Accept</ThemedText>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.buttonOutline, { borderColor: Colors[colorScheme].icon }]}
-        onPress={() => router.back()}
-      >
-        <ThemedText>Decline</ThemedText>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.buttonOutline, { borderColor: colors.border }]}
+          onPress={() => router.back()}
+        >
+          <ThemedText style={{ color: colors.muted }}>Decline</ThemedText>
+        </TouchableOpacity>
+      </View>
     </ThemedView>
   );
 }
@@ -38,16 +43,27 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
+    paddingHorizontal: 32,
+  },
+  accent: {
+    fontSize: 40,
+    marginBottom: 16,
+  },
+  title: {
+    marginBottom: 8,
   },
   subtitle: {
-    opacity: 0.6,
-    marginBottom: 24,
+    marginBottom: 32,
+    fontSize: 15,
+  },
+  buttons: {
+    gap: 12,
+    width: '100%',
   },
   button: {
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
@@ -56,8 +72,8 @@ const styles = StyleSheet.create({
   },
   buttonOutline: {
     borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 48,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
 });

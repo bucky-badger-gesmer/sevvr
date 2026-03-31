@@ -1,7 +1,7 @@
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import type { FriendRequest } from '@/types/social';
 
@@ -13,32 +13,35 @@ type FriendRequestCardProps = {
 
 export function FriendRequestCard({ request, onAccept, onDecline }: FriendRequestCardProps) {
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   return (
-    <ThemedView style={styles.card}>
+    <ThemedView style={[styles.card, { borderColor: colors.border }]}>
       <View style={styles.info}>
-        <View style={styles.avatar}>
-          <ThemedText style={styles.avatarText}>
+        <View style={[styles.avatar, { backgroundColor: colors.tint + '30' }]}>
+          <ThemedText style={[styles.avatarText, { color: colors.tint }]}>
             {(request.requester.username[0] ?? '?').toUpperCase()}
           </ThemedText>
         </View>
         <View>
           <ThemedText style={styles.username}>@{request.requester.username}</ThemedText>
-          <ThemedText style={styles.subtitle}>wants to be friends</ThemedText>
+          <ThemedText style={[styles.subtitle, { color: colors.muted }]}>
+            wants to be friends
+          </ThemedText>
         </View>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.acceptBtn, { backgroundColor: Colors[colorScheme].tint }]}
+          style={[styles.acceptBtn, { backgroundColor: colors.tint }]}
           onPress={onAccept}
         >
-          <ThemedText style={styles.btnText}>&#10003;</ThemedText>
+          <ThemedText style={styles.btnText}>✓</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.declineBtn, { borderColor: Colors[colorScheme].icon }]}
+          style={[styles.declineBtn, { borderColor: colors.border }]}
           onPress={onDecline}
         >
-          <ThemedText style={styles.declineBtnText}>&#10005;</ThemedText>
+          <ThemedText style={[styles.declineBtnText, { color: colors.muted }]}>✕</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -50,25 +53,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
   },
   info: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#333',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 12,
-    opacity: 0.5,
+    marginTop: 2,
   },
   actions: {
     flexDirection: 'row',
@@ -106,6 +108,5 @@ const styles = StyleSheet.create({
   },
   declineBtnText: {
     fontSize: 16,
-    opacity: 0.6,
   },
 });

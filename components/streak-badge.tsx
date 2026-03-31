@@ -1,4 +1,11 @@
 import { StyleSheet, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 
 type StreakBadgeProps = {
@@ -6,8 +13,25 @@ type StreakBadgeProps = {
   size?: 'small' | 'large';
 };
 
+
 export function StreakBadge({ count, size = 'large' }: StreakBadgeProps) {
   const isLarge = size === 'large';
+  const pulse = useSharedValue(1);
+
+  if (count > 0) {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 1000 }),
+        withTiming(1, { duration: 1000 })
+      ),
+      -1,
+      false
+    );
+  }
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: count > 0 ? pulse.value : 1 }],
+  }));
 
   if (count === 0) {
     return (
@@ -21,9 +45,11 @@ export function StreakBadge({ count, size = 'large' }: StreakBadgeProps) {
 
   return (
     <View style={styles.container}>
-      <ThemedText style={[styles.flame, !isLarge && styles.smallFlame]}>
-        {'\uD83D\uDD25'}
-      </ThemedText>
+      <Animated.View style={[styles.iconContainer, animatedStyle]}>
+        <ThemedText style={[styles.icon, !isLarge && styles.smallIcon]}>
+          🔥
+        </ThemedText>
+      </Animated.View>
       <ThemedText style={[styles.count, !isLarge && styles.smallCount]}>
         {count}-day streak
       </ThemedText>
@@ -35,13 +61,19 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  flame: {
-    fontSize: 24,
+  iconContainer: {
+    position: 'relative',
+    overflow: 'visible',
+    padding: 4,
   },
-  smallFlame: {
-    fontSize: 16,
+  icon: {
+    fontSize: 28,
+    lineHeight: 36,
+  },
+  smallIcon: {
+    fontSize: 18,
   },
   count: {
     fontSize: 18,

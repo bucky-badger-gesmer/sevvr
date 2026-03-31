@@ -1,4 +1,8 @@
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+} from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
@@ -8,7 +12,9 @@ type CalendarHeatmapProps = {
   activeDates: string[];
   year: number;
   month: number;
+  selectedDate?: string | null;
   onMonthChange: (year: number, month: number) => void;
+  onDayPress?: (dateStr: string) => void;
 };
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -22,13 +28,13 @@ function getDaysInMonth(year: number, month: number) {
 }
 
 function getFirstDayOfWeek(year: number, month: number) {
-  // 0 = Sunday, convert to Monday-based (0 = Monday)
   const day = new Date(year, month - 1, 1).getDay();
   return day === 0 ? 6 : day - 1;
 }
 
-export function CalendarHeatmap({ activeDates, year, month, onMonthChange }: CalendarHeatmapProps) {
+export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMonthChange, onDayPress }: CalendarHeatmapProps) {
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
   const activeSet = new Set(activeDates);
@@ -45,7 +51,6 @@ export function CalendarHeatmap({ activeDates, year, month, onMonthChange }: Cal
     else onMonthChange(year, month + 1);
   };
 
-  // Build grid cells
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -53,67 +58,75 @@ export function CalendarHeatmap({ activeDates, year, month, onMonthChange }: Cal
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={prevMonth} style={styles.arrow}>
-          <ThemedText style={styles.arrowText}>&#8249;</ThemedText>
+        <TouchableOpacity onPress={prevMonth} style={styles.arrow} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <ThemedText style={styles.arrowText}>‹</ThemedText>
         </TouchableOpacity>
         <ThemedText style={styles.monthTitle}>
           {MONTH_NAMES[month - 1]} {year}
         </ThemedText>
-        <TouchableOpacity onPress={nextMonth} style={styles.arrow}>
-          <ThemedText style={styles.arrowText}>&#8250;</ThemedText>
+        <TouchableOpacity onPress={nextMonth} style={styles.arrow} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <ThemedText style={styles.arrowText}>›</ThemedText>
         </TouchableOpacity>
       </View>
 
-      {/* Day labels */}
       <View style={styles.row}>
         {DAY_LABELS.map((label, i) => (
           <View key={i} style={styles.cell}>
-            <ThemedText style={[styles.dayLabel, { color: Colors[colorScheme].icon }]}>
+            <ThemedText style={[styles.dayLabel, { color: colors.muted }]}>
               {label}
             </ThemedText>
           </View>
         ))}
       </View>
 
-      {/* Day grid */}
-      {Array.from({ length: cells.length / 7 }, (_, weekIdx) => (
-        <View key={weekIdx} style={styles.row}>
-          {cells.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => {
-            if (day === null) {
-              return <View key={dayIdx} style={styles.cell} />;
-            }
+      <Animated.View
+        key={`${year}-${month}`}
+        entering={FadeIn.duration(300)}
+        exiting={FadeOut.duration(200)}
+      >
+        {Array.from({ length: cells.length / 7 }, (_, weekIdx) => (
+          <View key={weekIdx} style={styles.row}>
+            {cells.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => {
+              if (day === null) {
+                return <View key={dayIdx} style={styles.cell} />;
+              }
 
-            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const isActive = activeSet.has(dateStr);
-            const isToday = dateStr === today;
+              const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const isActive = activeSet.has(dateStr);
+              const isToday = dateStr === today;
+              const isSelected = dateStr === selectedDate;
 
-            return (
-              <View key={dayIdx} style={styles.cell}>
-                <View
-                  style={[
-                    styles.dayCircle,
-                    isActive && { backgroundColor: Colors[colorScheme].tint },
-                    isToday && !isActive && styles.todayBorder,
-                    isToday && !isActive && { borderColor: Colors[colorScheme].icon },
-                  ]}
-                >
-                  <ThemedText
+              return (
+                <View key={dayIdx} style={styles.cell}>
+                  <TouchableOpacity
                     style={[
-                      styles.dayText,
-                      isActive && styles.activeText,
-                      !isActive && { color: Colors[colorScheme].icon },
+                      styles.dayCircle,
+                      isActive && !isSelected && !isToday && { borderColor: colors.tint + '80', borderWidth: 1 },
+                      isToday && !isSelected && { borderColor: colors.tint, borderWidth: 1.5 },
+                      isSelected && { backgroundColor: colors.tint, borderColor: colors.tint, borderWidth: 2 },
                     ]}
+                    onPress={() => onDayPress?.(dateStr)}
+                    disabled={!isActive && !isToday}
+                    activeOpacity={0.7}
                   >
-                    {day}
-                  </ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.dayText,
+                        isActive && !isSelected && { color: colors.text },
+                        !isActive && { color: colors.muted },
+                        isSelected && { color: '#fff', fontWeight: '600' },
+                      ]}
+                    >
+                      {day}
+                    </ThemedText>
+                  </TouchableOpacity>
                 </View>
-              </View>
-            );
-          })}
-        </View>
-      ))}
+              );
+            })}
+          </View>
+        ))}
+      </Animated.View>
     </ThemedView>
   );
 }
@@ -126,14 +139,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   arrow: {
     padding: 8,
   },
   arrowText: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '300',
+    color: '#666',
   },
   monthTitle: {
     fontSize: 16,
@@ -148,24 +162,20 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   dayLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   dayCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  todayBorder: {
-    borderWidth: 1,
-  },
   dayText: {
     fontSize: 13,
-  },
-  activeText: {
-    color: '#fff',
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });

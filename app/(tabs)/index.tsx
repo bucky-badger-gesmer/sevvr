@@ -11,29 +11,28 @@ import { StreakBadge } from '@/components/streak-badge';
 import { useSession } from '@/hooks/use-session';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabase';
+import * as streakService from '@/lib/streak-service';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HomeScreen() {
   const { sessionState, activeSession, dismissMessage, dispatch } = useSession();
   const { user } = useAuth();
   const router = useRouter();
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const [streak, setStreak] = useState(0);
   const [dailySeconds, setDailySeconds] = useState(0);
   const [dailyCount, setDailyCount] = useState(0);
 
-  // Refetch streak and daily stats on tab focus
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
 
       (async () => {
-        const { data: streakData } = await supabase
-          .from('streaks')
-          .select('current_streak')
-          .eq('user_id', user.id)
-          .single();
-        if (streakData) setStreak(streakData.current_streak);
+        const streakData = await streakService.getStreak(user.id).catch(() => null);
+        if (streakData) setStreak(streakData.currentStreak);
 
-        // Use local timezone for "today" range
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
         const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
@@ -52,14 +51,12 @@ export default function HomeScreen() {
     }, [user])
   );
 
-  // Navigate to Life Unlocked when session ends
   useEffect(() => {
     if (sessionState === 'ended') {
       router.push('/(modals)/life-unlocked');
     }
   }, [sessionState, router]);
 
-  // Auto-clear dismiss message after 3 seconds
   useEffect(() => {
     if (!dismissMessage) return;
     const timer = setTimeout(() => dispatch({ type: 'DISMISS' }), 3000);
@@ -73,12 +70,14 @@ export default function HomeScreen() {
     return `${m}m`;
   };
 
-  // Active session — user briefly opened app during session
   if (sessionState === 'active' && activeSession) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText type="title">Session Active</ThemedText>
-        <ThemedText style={styles.hint}>Lock your phone to keep severing</ThemedText>
+        <ThemedText style={styles.activeIcon}>🌿</ThemedText>
+        <ThemedText type="heading">Session Active</ThemedText>
+        <ThemedText style={[styles.hint, { color: colors.muted }]}>
+          Lock your phone to keep severing
+        </ThemedText>
       </ThemedView>
     );
   }
@@ -87,7 +86,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       {/* Daily stats header */}
       <View style={styles.header}>
-        <ThemedText style={styles.dailyStat}>
+        <ThemedText type="mono" style={[styles.dailyStat, { color: colors.muted }]}>
           Today: {formatTime(dailySeconds)}
           {dailyCount > 0 ? `  (${dailyCount})` : ''}
         </ThemedText>
@@ -95,8 +94,10 @@ export default function HomeScreen() {
 
       {/* Dismiss message */}
       {dismissMessage && (
-        <View style={styles.dismissBanner}>
-          <ThemedText style={styles.dismissText}>{dismissMessage}</ThemedText>
+        <View style={[styles.dismissBanner, { backgroundColor: colors.error + '15' }]}>
+          <ThemedText style={[styles.dismissText, { color: colors.error }]}>
+            {dismissMessage}
+          </ThemedText>
         </View>
       )}
 
@@ -111,7 +112,7 @@ export default function HomeScreen() {
         <StreakBadge count={streak} />
       </View>
 
-      {/* Countdown overlay — lock phone during this window */}
+      {/* Countdown overlay */}
       {sessionState === 'countdown' && (
         <CountdownOverlay
           onComplete={() => dispatch({ type: 'CANCEL', message: "Phone wasn't locked in time" })}
@@ -128,31 +129,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  activeIcon: {
+    fontSize: 40,
+    marginBottom: 16,
+  },
   header: {
     position: 'absolute',
     top: 80,
   },
   dailyStat: {
-    fontSize: 16,
-    opacity: 0.6,
+    fontSize: 14,
+    letterSpacing: 0.5,
   },
   streakContainer: {
     marginTop: 32,
   },
   hint: {
     marginTop: 8,
-    opacity: 0.5,
+    fontSize: 15,
   },
   dismissBanner: {
     position: 'absolute',
     top: 120,
-    backgroundColor: 'rgba(229, 62, 62, 0.15)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
   },
   dismissText: {
-    color: '#e53e3e',
     fontSize: 14,
+    fontWeight: '500',
   },
 });

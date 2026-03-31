@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, View } from 'react-native';
 import { Link } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/hooks/use-auth';
-import { Colors } from '@/constants/theme';
+import { Colors, BorderRadius, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function ForgotPasswordScreen() {
   const { resetPassword } = useAuth();
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
@@ -36,12 +37,15 @@ export default function ForgotPasswordScreen() {
   if (sent) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>Check Your Email</ThemedText>
-        <ThemedText style={styles.subtitle}>
-          We sent a password reset link to {email}
-        </ThemedText>
-        <Link href="/(auth)/login" style={styles.link}>
-          <ThemedText type="link">Back to Log In</ThemedText>
+        <View style={styles.header}>
+          <ThemedText style={styles.accent}>📬</ThemedText>
+          <ThemedText type="display" style={styles.title}>Sent</ThemedText>
+          <ThemedText style={[styles.subtitle, { color: colors.muted }]}>
+            Check your email for a reset link
+          </ThemedText>
+        </View>
+        <Link href="/(auth)/login">
+          <ThemedText style={[styles.linkText, { color: colors.tint }]}>Back to Log In</ThemedText>
         </Link>
       </ThemedView>
     );
@@ -49,39 +53,46 @@ export default function ForgotPasswordScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>Reset Password</ThemedText>
-      <ThemedText style={styles.subtitle}>
-        Enter your email and we'll send you a reset link.
-      </ThemedText>
+      <View style={styles.header}>
+        <ThemedText style={styles.accent}>🔑</ThemedText>
+        <ThemedText type="display" style={styles.title}>Reset</ThemedText>
+        <ThemedText style={[styles.subtitle, { color: colors.muted }]}>
+          We will send you a reset link
+        </ThemedText>
+      </View>
 
-      <TextInput
-        style={[styles.input, { color: Colors[colorScheme].text, borderColor: Colors[colorScheme].icon }]}
-        placeholder="Email"
-        placeholderTextColor={Colors[colorScheme].icon}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        textContentType="emailAddress"
-      />
+      <View style={styles.form}>
+        <TextInput
+          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          placeholder="Email"
+          placeholderTextColor={colors.muted}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+        />
 
-      {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+        {error ? <ThemedText style={[styles.error, { color: colors.error }]}>{error}</ThemedText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: Colors[colorScheme].tint }]}
-        onPress={handleReset}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <ThemedText style={styles.buttonText}>Send Reset Link</ThemedText>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: colors.tint }]}
+          onPress={handleReset}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <ThemedText style={styles.buttonText}>Send Reset Link</ThemedText>
+          )}
+        </TouchableOpacity>
+      </View>
 
-      <Link href="/(auth)/login" style={styles.link}>
-        <ThemedText type="link">Back to Log In</ThemedText>
-      </Link>
+      <View style={styles.links}>
+        <Link href="/(auth)/login">
+          <ThemedText style={[styles.linkText, { color: colors.muted }]}>Back to Log In</ThemedText>
+        </Link>
+      </View>
     </ThemedView>
   );
 }
@@ -92,29 +103,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
+  header: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  accent: {
+    fontSize: 32,
+    marginBottom: 12,
+  },
   title: {
     textAlign: 'center',
-    marginBottom: 4,
+    letterSpacing: -1,
   },
   subtitle: {
-    textAlign: 'center',
-    marginBottom: 32,
-    opacity: 0.6,
+    marginTop: 8,
+    fontSize: 15,
+  },
+  form: {
+    gap: 12,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: BorderRadius.lg,
+    padding: 16,
     fontSize: 16,
+    fontFamily: Typography.body.fontFamily,
   },
   error: {
-    color: '#e53e3e',
-    marginBottom: 12,
     textAlign: 'center',
+    fontSize: 14,
   },
   button: {
-    borderRadius: 8,
+    borderRadius: BorderRadius.lg,
     padding: 16,
     alignItems: 'center',
     marginTop: 4,
@@ -124,8 +144,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  link: {
-    marginTop: 20,
-    alignSelf: 'center',
+  links: {
+    alignItems: 'center',
+    marginTop: 32,
+  },
+  linkText: {
+    fontSize: 14,
   },
 });

@@ -11,6 +11,8 @@ import * as Haptics from 'expo-haptics';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useCountdown } from '@/hooks/use-countdown';
+import { Colors, Typography } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 type CountdownOverlayProps = {
   onComplete: () => void;
@@ -20,12 +22,13 @@ type CountdownOverlayProps = {
 export function CountdownOverlay({ onComplete, onCancel }: CountdownOverlayProps) {
   const { secondsLeft, isRunning, start } = useCountdown(5);
   const scale = useSharedValue(1);
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   useEffect(() => {
     start();
   }, [start]);
 
-  // Haptic tick + scale pulse on each second change
   useEffect(() => {
     if (!isRunning) return;
 
@@ -38,7 +41,6 @@ export function CountdownOverlay({ onComplete, onCancel }: CountdownOverlayProps
     }
   }, [secondsLeft, isRunning, scale]);
 
-  // Fire onComplete when countdown reaches 0 (once only)
   const hasCompletedRef = useRef(false);
   useEffect(() => {
     if (secondsLeft === 0 && !isRunning && !hasCompletedRef.current) {
@@ -53,14 +55,15 @@ export function CountdownOverlay({ onComplete, onCancel }: CountdownOverlayProps
   }));
 
   return (
-    <ThemedView style={styles.overlay}>
-      <Animated.Text style={[styles.number, numberStyle]}>
+    <ThemedView style={[styles.overlay, { backgroundColor: colors.background }]}>
+      <ThemedText style={styles.lockIcon}>🔒</ThemedText>
+      <Animated.Text style={[styles.number, numberStyle, { color: colors.tint }]}>
         {secondsLeft}
       </Animated.Text>
       <ThemedText style={styles.message}>Lock your phone now</ThemedText>
 
       <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-        <ThemedText style={styles.cancelText}>Cancel</ThemedText>
+        <ThemedText style={[styles.cancelText, { color: colors.muted }]}>Cancel</ThemedText>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -73,10 +76,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 100,
   },
+  lockIcon: {
+    fontSize: 40,
+    marginBottom: 16,
+  },
   number: {
     fontSize: 120,
-    fontWeight: '800',
-    color: '#e94560',
+    fontFamily: Typography.mono.fontFamily,
+    fontWeight: '500',
   },
   message: {
     fontSize: 18,
@@ -91,6 +98,5 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 16,
-    opacity: 0.6,
   },
 });
