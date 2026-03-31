@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -14,6 +15,7 @@ import { formatDurationShort } from '@/lib/format';
 
 export default function ProfileScreen() {
   const { user, signOut, deleteAccount } = useAuth();
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const [loading, setLoading] = useState(false);
@@ -68,7 +70,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { paddingTop: insets.top + 24 }]}>
         {/* Avatar */}
         <View style={[styles.avatar, { backgroundColor: colors.tint + '30' }]}>
           <ThemedText style={[styles.avatarText, { color: colors.tint }]}>
@@ -131,7 +133,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 80,
     paddingHorizontal: 24,
   },
   avatar: {
@@ -144,6 +145,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 28,
+    lineHeight: 34,
     fontWeight: '600',
   },
   username: {

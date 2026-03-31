@@ -13,25 +13,10 @@ type StreakBadgeProps = {
   size?: 'small' | 'large';
 };
 
-const getStreakIcon = (count: number): string => {
-  if (count >= 100) return '🌸';
-  if (count >= 30) return '🌿';
-  if (count >= 7) return '🌱';
-  return '🔥';
-};
-
-const getStreakGlow = (count: number): string | null => {
-  if (count >= 100) return '#D4A853';
-  if (count >= 30) return '#8FA88B';
-  if (count >= 7) return '#C67D5E';
-  return null;
-};
 
 export function StreakBadge({ count, size = 'large' }: StreakBadgeProps) {
   const isLarge = size === 'large';
   const pulse = useSharedValue(1);
-
-  const glowColor = getStreakGlow(count);
 
   if (count > 0) {
     pulse.value = withRepeat(
@@ -62,16 +47,8 @@ export function StreakBadge({ count, size = 'large' }: StreakBadgeProps) {
     <View style={styles.container}>
       <Animated.View style={[styles.iconContainer, animatedStyle]}>
         <ThemedText style={[styles.icon, !isLarge && styles.smallIcon]}>
-          {getStreakIcon(count)}
+          🔥
         </ThemedText>
-        {glowColor && (
-          <View
-            style={[
-              styles.glow,
-              { backgroundColor: glowColor },
-            ]}
-          />
-        )}
       </Animated.View>
       <ThemedText style={[styles.count, !isLarge && styles.smallCount]}>
         {count}-day streak
@@ -88,21 +65,15 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     position: 'relative',
+    overflow: 'visible',
+    padding: 4,
   },
   icon: {
     fontSize: 28,
+    lineHeight: 36,
   },
   smallIcon: {
     fontSize: 18,
-  },
-  glow: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    borderRadius: 20,
-    opacity: 0.15,
   },
   count: {
     fontSize: 18,

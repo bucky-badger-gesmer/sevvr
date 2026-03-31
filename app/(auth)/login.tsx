@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
   },
   accent: {
     fontSize: 32,
+    lineHeight: 42,
     marginBottom: 12,
   },
   title: {

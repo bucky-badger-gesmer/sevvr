@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 16,
+    lineHeight: 22,
   },
   date: {
     fontSize: 14,
@@ -86,5 +87,6 @@ const styles = StyleSheet.create({
   },
   trophy: {
     fontSize: 16,
+    lineHeight: 22,
   },
 });

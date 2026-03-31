@@ -28,11 +28,9 @@ export async function getSessionHistory(userId: string, page: number, limit: num
 }
 
 export async function getCalendarData(userId: string, year: number, month: number) {
-  // Get all sessions for the given month
-  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-  const endMonth = month === 12 ? 1 : month + 1;
-  const endYear = month === 12 ? year + 1 : year;
-  const endDate = `${endYear}-${String(endMonth).padStart(2, '0')}-01`;
+  // Use local midnight boundaries to avoid UTC date attribution errors
+  const startDate = new Date(year, month - 1, 1).toISOString();
+  const endDate = new Date(month === 12 ? year + 1 : year, month === 12 ? 0 : month, 1).toISOString();
 
   const { data, error } = await supabase
     .from('sessions')
@@ -44,7 +42,7 @@ export async function getCalendarData(userId: string, year: number, month: numbe
 
   if (error) throw error;
 
-  // Extract unique dates
+  // Return unique local dates — calendar only needs to know if a day had any sessions
   const dates = new Set(
     (data ?? []).map((s) => {
       const d = new Date(s.started_at);
@@ -81,8 +79,9 @@ export async function getPersonalBest(userId: string) {
 }
 
 export async function getSessionsForDate(userId: string, date: string) {
-  const startOfDay = `${date}T00:00:00.000Z`;
-  const endOfDay = `${date}T23:59:59.999Z`;
+  const parts = date.split('-');
+  const startOfDay = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])).toISOString();
+  const endOfDay = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]) + 1).toISOString();
 
   const { data, error } = await supabase
     .from('sessions')
@@ -90,7 +89,7 @@ export async function getSessionsForDate(userId: string, date: string) {
     .eq('user_id', userId)
     .not('ended_at', 'is', null)
     .gte('started_at', startOfDay)
-    .lte('started_at', endOfDay)
+    .lt('started_at', endOfDay)
     .order('started_at', { ascending: false });
 
   if (error) throw error;

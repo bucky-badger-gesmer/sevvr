@@ -23,9 +23,6 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-const BOTANICAL_SYMBOLS = ['·', '🌱', '🌿', '🌸'];
-const BOTANICAL_COLORS = ['#8FA88B', '#A3B894', '#C67D5E', '#D4A853'];
-
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
@@ -33,15 +30,6 @@ function getDaysInMonth(year: number, month: number) {
 function getFirstDayOfWeek(year: number, month: number) {
   const day = new Date(year, month - 1, 1).getDay();
   return day === 0 ? 6 : day - 1;
-}
-
-function getActivityLevel(dateStr: string, activeDates: string[]): number {
-  const count = activeDates.filter(d => d === dateStr).length;
-  if (count === 0) return 0;
-  if (count === 1) return 1;
-  if (count <= 3) return 2;
-  if (count <= 5) return 3;
-  return 4;
 }
 
 export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMonthChange, onDayPress }: CalendarHeatmapProps) {
@@ -68,16 +56,6 @@ export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMont
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const getSeasonalEmoji = (level: number): string => {
-    if (level === 0) return '';
-    return BOTANICAL_SYMBOLS[Math.min(level, 3)];
-  };
-
-  const getActivityColor = (level: number): string => {
-    if (level === 0) return 'transparent';
-    return BOTANICAL_COLORS[Math.min(level, 3)] + '30';
-  };
-
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
@@ -102,7 +80,7 @@ export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMont
         ))}
       </View>
 
-      <Animated.View 
+      <Animated.View
         key={`${year}-${month}`}
         entering={FadeIn.duration(300)}
         exiting={FadeOut.duration(200)}
@@ -118,14 +96,13 @@ export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMont
               const isActive = activeSet.has(dateStr);
               const isToday = dateStr === today;
               const isSelected = dateStr === selectedDate;
-              const activityLevel = getActivityLevel(dateStr, activeDates);
 
               return (
                 <View key={dayIdx} style={styles.cell}>
                   <TouchableOpacity
                     style={[
                       styles.dayCircle,
-                      { backgroundColor: getActivityColor(activityLevel) },
+                      isActive && !isSelected && !isToday && { borderColor: colors.tint + '80', borderWidth: 1 },
                       isToday && !isSelected && { borderColor: colors.tint, borderWidth: 1.5 },
                       isSelected && { backgroundColor: colors.tint, borderColor: colors.tint, borderWidth: 2 },
                     ]}
@@ -143,11 +120,6 @@ export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMont
                     >
                       {day}
                     </ThemedText>
-                    {isActive && !isSelected && (
-                      <ThemedText style={styles.botanicalSymbol}>
-                        {getSeasonalEmoji(activityLevel)}
-                      </ThemedText>
-                    )}
                   </TouchableOpacity>
                 </View>
               );
@@ -155,25 +127,6 @@ export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMont
           </View>
         ))}
       </Animated.View>
-
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: BOTANICAL_COLORS[0] }]} />
-          <ThemedText style={[styles.legendText, { color: colors.muted }]}>Seed</ThemedText>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: BOTANICAL_COLORS[1] }]} />
-          <ThemedText style={[styles.legendText, { color: colors.muted }]}>Sprout</ThemedText>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: BOTANICAL_COLORS[2] }]} />
-          <ThemedText style={[styles.legendText, { color: colors.muted }]}>Leaf</ThemedText>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: BOTANICAL_COLORS[3] }]} />
-          <ThemedText style={[styles.legendText, { color: colors.muted }]}>Bloom</ThemedText>
-        </View>
-      </View>
     </ThemedView>
   );
 }
@@ -220,39 +173,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
   },
   dayText: {
     fontSize: 13,
     fontWeight: '500',
-  },
-  botanicalSymbol: {
-    position: 'absolute',
-    bottom: 2,
-    fontSize: 8,
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E0D8',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendText: {
-    fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
 });

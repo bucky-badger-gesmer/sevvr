@@ -34,7 +34,7 @@ export function StatCard({ label, value, highlight, icon }: StatCardProps) {
   };
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={[animatedStyle, styles.wrapper]}>
       <ThemedView
         onTouchStart={handlePressIn}
         onTouchEnd={handlePressOut}
@@ -60,8 +60,10 @@ export function StatCard({ label, value, highlight, icon }: StatCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
+  wrapper: {
     flex: 1,
+  },
+  card: {
     padding: 16,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',

@@ -11,6 +11,7 @@ import { StreakBadge } from '@/components/streak-badge';
 import { useSession } from '@/hooks/use-session';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabase';
+import * as streakService from '@/lib/streak-service';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -29,12 +30,8 @@ export default function HomeScreen() {
       if (!user) return;
 
       (async () => {
-        const { data: streakData } = await supabase
-          .from('streaks')
-          .select('current_streak')
-          .eq('user_id', user.id)
-          .single();
-        if (streakData) setStreak(streakData.current_streak);
+        const streakData = await streakService.getStreak(user.id).catch(() => null);
+        if (streakData) setStreak(streakData.currentStreak);
 
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();

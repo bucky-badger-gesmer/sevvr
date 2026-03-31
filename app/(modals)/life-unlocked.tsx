@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
   },
   bloom: {
     fontSize: 48,
+    lineHeight: 58,
     marginBottom: 16,
   },
   title: {
@@ -93,10 +94,12 @@ const styles = StyleSheet.create({
   },
   duration: {
     fontSize: 48,
+    lineHeight: 56,
     fontWeight: '500',
     marginBottom: 32,
   },
   missedContainer: {
+    width: '100%',
     alignItems: 'center',
     gap: 8,
     marginBottom: 40,
@@ -114,13 +117,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: BorderRadius.lg,
     paddingVertical: 14,
-    paddingHorizontal: 48,
+    width: '100%',
+    alignItems: 'center',
     marginBottom: 12,
   },
   doneButton: {
     borderRadius: BorderRadius.lg,
     paddingVertical: 14,
-    paddingHorizontal: 48,
+    width: '100%',
+    alignItems: 'center',
   },
   doneText: {
     color: '#fff',
