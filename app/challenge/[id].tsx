@@ -118,7 +118,7 @@ export default function ChallengeDeepLink() {
     <ThemedView style={styles.container}>
       <ThemedText type="title">Challenge Invite</ThemedText>
       <ThemedText style={styles.subtitle}>
-        You've been challenged! Do you accept?
+        You&rsquo;ve been challenged! Do you accept?
       </ThemedText>
       <ThemedView style={styles.actions}>
         <TouchableOpacity

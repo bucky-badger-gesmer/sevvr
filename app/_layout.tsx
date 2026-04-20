@@ -52,7 +52,7 @@ function RootLayoutNav() {
         }
       });
     }
-  }, [user, isLoading, segments]);
+  }, [user, isLoading, segments, router]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
