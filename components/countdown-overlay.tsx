@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
   },
   lockIcon: {
     fontSize: 40,
+    lineHeight: 48,
     marginBottom: 16,
   },
   number: {

@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
   },
   activeIcon: {
     fontSize: 40,
+    lineHeight: 48,
     marginBottom: 16,
   },
   header: {
