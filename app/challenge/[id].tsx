@@ -38,9 +38,13 @@ export default function ChallengeDeepLink() {
       .finally(() => setLoading(false));
   }, [user, id]);
 
+  useEffect(() => {
+    if (!user && id) {
+      AsyncStorage.setItem(PENDING_CHALLENGE_KEY, id);
+    }
+  }, [user, id]);
+
   if (!user) {
-    // Store token so we can redirect back after signup
-    AsyncStorage.setItem(PENDING_CHALLENGE_KEY, id ?? '');
     return (
       <ThemedView style={styles.container}>
         <ThemedText type="title">Challenge Invite</ThemedText>

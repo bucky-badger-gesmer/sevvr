@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, Pressable } from 'react-native';
+import { Platform, StyleSheet, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,14 +26,17 @@ const BUTTON_SIZE = 200;
 const FILL_DURATION = 3000;
 
 function triggerHeavyHaptic() {
+  if (Platform.OS === 'web') return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 }
 
 function triggerSuccessHaptic() {
+  if (Platform.OS === 'web') return;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 }
 
 function triggerLightHaptic() {
+  if (Platform.OS === 'web') return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,7 +33,9 @@ export function CountdownOverlay({ onComplete, onCancel }: CountdownOverlayProps
     if (!isRunning) return;
 
     if (secondsLeft > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
       scale.value = withSequence(
         withTiming(1.3, { duration: 150 }),
         withTiming(1, { duration: 150 })
@@ -45,7 +47,9 @@ export function CountdownOverlay({ onComplete, onCancel }: CountdownOverlayProps
   useEffect(() => {
     if (secondsLeft === 0 && !isRunning && !hasCompletedRef.current) {
       hasCompletedRef.current = true;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
       onComplete();
     }
   }, [secondsLeft, isRunning, onComplete]);

@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 import { type EventSubscription } from 'expo-modules-core';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -22,8 +23,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [permissionStatus, setPermissionStatus] = useState<Notifications.PermissionStatus | null>(null);
 
   useEffect(() => {
-    // Only run on physical devices; push tokens don't work on simulators
-    if (!Device.isDevice) return;
+    // Skip on web and simulators; push tokens only work on physical devices
+    if (Platform.OS === 'web' || !Device.isDevice) return;
 
     let notifSubscription: EventSubscription;
     let respSubscription: EventSubscription;
