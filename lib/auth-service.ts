@@ -24,6 +24,10 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    await supabase.from('profiles').update({ push_token: null }).eq('id', user.id);
+  }
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }

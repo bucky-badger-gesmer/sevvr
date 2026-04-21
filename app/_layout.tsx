@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider } from '@/providers/auth-provider';
 import { SessionProvider } from '@/providers/session-provider';
+import { NotificationProvider } from '@/providers/notification-provider';
 import { useAuth } from '@/hooks/use-auth';
 
 Notifications.setNotificationHandler({
@@ -78,7 +79,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <SessionProvider>
-        <RootLayoutNav />
+        <NotificationProvider>
+          <RootLayoutNav />
+        </NotificationProvider>
       </SessionProvider>
     </AuthProvider>
   );
