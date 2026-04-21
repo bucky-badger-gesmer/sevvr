@@ -135,6 +135,8 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={disabled}
+      onTouchStart={(e) => e.preventDefault?.()}
+      onTouchMove={(e) => e.preventDefault?.()}
     >
       {milestoneIcon && (
         <Animated.View style={[styles.burst, burstStyle]}>
