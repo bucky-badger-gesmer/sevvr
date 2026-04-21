@@ -173,6 +173,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
     borderWidth: 2,
+    // Prevent text selection on web during long-press
+    userSelect: 'none',
   },
   glow: {
     shadowColor: '#C67D5E',
@@ -190,6 +192,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: 4,
+    userSelect: 'none',
   },
   burst: {
     position: 'absolute',
