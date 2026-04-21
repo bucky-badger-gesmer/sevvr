@@ -1,5 +1,5 @@
-import { createContext, useEffect, useState, useRef, type ReactNode } from 'react';
-import { Platform } from 'react-native';
+import { createContext, useEffect, useState, type ReactNode } from 'react';
+import { type EventSubscription } from 'expo-modules-core';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -20,12 +20,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [pushToken, setPushToken] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<Notifications.PermissionStatus | null>(null);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
 
   useEffect(() => {
     // Only run on physical devices; push tokens don't work on simulators
     if (!Device.isDevice) return;
+
+    let notifSubscription: EventSubscription;
+    let respSubscription: EventSubscription;
 
     async function registerForPushNotifications() {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -44,9 +45,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const tokenData = await Notifications.getExpoPushTokenAsync({
-          projectId: Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId,
-        });
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+        if (!projectId) {
+          console.warn('No EAS projectId found. Push tokens require an EAS project. Run: npx eas init');
+          return;
+        }
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
         setPushToken(tokenData.data);
 
         if (user) {
@@ -60,12 +64,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     registerForPushNotifications();
 
     // Foreground notification handler
-    notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
+    notifSubscription = Notifications.addNotificationReceivedListener((notification) => {
       console.log('Notification received:', notification);
     });
 
     // Notification response handler (user tapped notification)
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+    respSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data;
       switch (data.type) {
         case 'challenge_invite':
@@ -83,12 +87,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
-      }
+      notifSubscription?.remove();
+      respSubscription?.remove();
     };
   }, [user, router]);
 

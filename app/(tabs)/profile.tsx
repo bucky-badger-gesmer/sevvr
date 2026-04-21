@@ -252,6 +252,7 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
     width: '100%',
+    paddingBottom: 32,
   },
   button: {
     borderWidth: 1,
