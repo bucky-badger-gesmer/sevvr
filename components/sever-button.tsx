@@ -130,6 +130,16 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
   const milestoneIcon = getMilestoneIcon();
   const showGlow = streakMilestone && streakMilestone > 0;
 
+  const webOnlyPressableProps =
+    Platform.OS === 'web'
+      ? ({ onContextMenu: (e: any) => e.preventDefault?.() } as any)
+      : {};
+
+  const webOnlyContainerStyle =
+    Platform.OS === 'web'
+      ? ({ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' } as any)
+      : {};
+
   return (
     <Pressable
       onPressIn={onPressIn}
@@ -137,6 +147,7 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
       disabled={disabled}
       onTouchStart={(e) => e.preventDefault?.()}
       onTouchMove={(e) => e.preventDefault?.()}
+      {...webOnlyPressableProps}
     >
       {milestoneIcon && (
         <Animated.View style={[styles.burst, burstStyle]}>
@@ -146,6 +157,7 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
       <Animated.View
         style={[
           styles.container,
+          webOnlyContainerStyle,
           { borderColor: colors.tint },
           showGlow ? styles.glow : undefined,
           disabled && styles.disabled,
@@ -159,7 +171,9 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
             { backgroundColor: colors.tint },
           ]}
         />
-        <Animated.Text style={[styles.text, textStyle]}>SEVER</Animated.Text>
+        <Animated.View pointerEvents="none">
+          <Animated.Text style={[styles.text, textStyle]}>SEVER</Animated.Text>
+        </Animated.View>
       </Animated.View>
     </Pressable>
   );
