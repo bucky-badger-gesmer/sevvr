@@ -63,7 +63,7 @@ export default function ForgotPasswordScreen() {
 
       <View style={styles.form}>
         <TextInput
-          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
           placeholder="Email"
           placeholderTextColor={colors.muted}
           value={email}

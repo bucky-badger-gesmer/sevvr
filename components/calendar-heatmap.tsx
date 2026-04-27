@@ -60,13 +60,13 @@ export function CalendarHeatmap({ activeDates, year, month, selectedDate, onMont
     <ThemedView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={prevMonth} style={styles.arrow} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <ThemedText style={styles.arrowText}>‹</ThemedText>
+          <ThemedText style={[styles.arrowText, { color: colors.muted }]}>‹</ThemedText>
         </TouchableOpacity>
         <ThemedText style={styles.monthTitle}>
           {MONTH_NAMES[month - 1]} {year}
         </ThemedText>
         <TouchableOpacity onPress={nextMonth} style={styles.arrow} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <ThemedText style={styles.arrowText}>›</ThemedText>
+          <ThemedText style={[styles.arrowText, { color: colors.muted }]}>›</ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -147,7 +147,6 @@ const styles = StyleSheet.create({
   arrowText: {
     fontSize: 28,
     fontWeight: '300',
-    color: '#666',
   },
   monthTitle: {
     fontSize: 16,

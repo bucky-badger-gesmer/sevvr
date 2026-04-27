@@ -158,8 +158,8 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
         style={[
           styles.container,
           webOnlyContainerStyle,
-          { borderColor: colors.tint },
-          showGlow ? styles.glow : undefined,
+          { borderColor: colors.tint, backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' },
+          showGlow ? { shadowColor: colors.tint } : undefined,
           disabled && styles.disabled,
           containerStyle,
         ]}
@@ -172,7 +172,7 @@ export function SeverButton({ onFillComplete, disabled, streakMilestone }: Sever
           ]}
         />
         <Animated.View pointerEvents="none">
-          <Animated.Text style={[styles.text, textStyle]}>SEVER</Animated.Text>
+          <Animated.Text style={[styles.text, { color: colors.text }, textStyle]}>SEVER</Animated.Text>
         </Animated.View>
       </Animated.View>
     </Pressable>
@@ -184,27 +184,17 @@ const styles = StyleSheet.create({
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: BUTTON_SIZE / 2,
-    backgroundColor: 'rgba(0,0,0,0.04)',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
     borderWidth: 2,
-    // Prevent text selection on web during long-press
     userSelect: 'none',
-  },
-  glow: {
-    shadowColor: '#C67D5E',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 8,
   },
   fill: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: BUTTON_SIZE / 2,
   },
   text: {
-    color: '#1A1A1A',
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: 4,

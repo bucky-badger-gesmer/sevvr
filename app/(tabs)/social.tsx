@@ -274,7 +274,7 @@ export default function SocialScreen() {
               )}
 
               <TextInput
-                style={[styles.searchInput, { color: colors.text, borderColor: colors.border }]}
+                style={[styles.searchInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
                 placeholder="Search by username..."
                 placeholderTextColor={colors.muted}
                 value={searchQuery}

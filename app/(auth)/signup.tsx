@@ -58,7 +58,7 @@ export default function SignupScreen() {
 
       <View style={styles.form}>
         <TextInput
-          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
           placeholder="Username"
           placeholderTextColor={colors.muted}
           value={username}
@@ -67,7 +67,7 @@ export default function SignupScreen() {
           textContentType="username"
         />
         <TextInput
-          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
           placeholder="Email"
           placeholderTextColor={colors.muted}
           value={email}
@@ -77,7 +77,7 @@ export default function SignupScreen() {
           textContentType="emailAddress"
         />
         <TextInput
-          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
           placeholder="Password (8+ characters)"
           placeholderTextColor={colors.muted}
           value={password}
