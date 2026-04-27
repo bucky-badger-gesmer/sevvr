@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, View } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, View, Modal, Pressable } from 'react-native';
 import { Link } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
@@ -16,6 +16,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showDevInfo, setShowDevInfo] = useState(false);
+  const isDev = __DEV__;
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -45,7 +47,7 @@ export default function LoginScreen() {
 
       <View style={styles.form}>
         <TextInput
-          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
           placeholder="Email"
           placeholderTextColor={colors.muted}
           value={email}
@@ -55,7 +57,7 @@ export default function LoginScreen() {
           textContentType="emailAddress"
         />
         <TextInput
-          style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+          style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface }]}
           placeholder="Password"
           placeholderTextColor={colors.muted}
           value={password}
@@ -87,6 +89,50 @@ export default function LoginScreen() {
           <ThemedText style={[styles.linkText, { color: colors.tint }]}>Create Account</ThemedText>
         </Link>
       </View>
+
+      {isDev && (
+        <>
+          <TouchableOpacity
+            style={styles.infoButton}
+            onPress={() => setShowDevInfo(true)}
+          >
+            <ThemedText style={[styles.infoButtonText, { color: colors.muted }]}>
+              ℹ  Dev Setup Info
+            </ThemedText>
+          </TouchableOpacity>
+
+          <Modal
+            visible={showDevInfo}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowDevInfo(false)}
+          >
+            <Pressable style={styles.modalOverlay} onPress={() => setShowDevInfo(false)}>
+              <Pressable style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <ThemedText type="defaultSemiBold" style={styles.modalTitle}>
+                  Local Development Setup
+                </ThemedText>
+                <ThemedText style={[styles.modalBody, { color: colors.muted }]}>
+                  If running locally, you will need to add a{' '}
+                  <ThemedText type="defaultSemiBold">.env</ThemedText> file in the
+                  project root with the following secrets:
+                </ThemedText>
+                <View style={[styles.codeBlock, { backgroundColor: colors.background }]}>
+                  <ThemedText style={styles.codeText}>EXPO_PUBLIC_SUPABASE_URL</ThemedText>
+                  <ThemedText style={styles.codeText}>EXPO_PUBLIC_SUPABASE_ANON_KEY</ThemedText>
+                  <ThemedText style={styles.codeText}>SUPABASE_SERVICE_ROLE_KEY</ThemedText>
+                </View>
+                <TouchableOpacity
+                  style={[styles.modalClose, { backgroundColor: colors.tint }]}
+                  onPress={() => setShowDevInfo(false)}
+                >
+                  <ThemedText style={styles.buttonText}>Got it</ThemedText>
+                </TouchableOpacity>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        </>
+      )}
     </ThemedView>
   );
 }
@@ -147,5 +193,50 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
+  },
+  infoButton: {
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  infoButtonText: {
+    fontSize: 13,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  modalContent: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 17,
+    marginBottom: 12,
+  },
+  modalBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  codeBlock: {
+    borderRadius: BorderRadius.md,
+    padding: 12,
+    gap: 4,
+    marginBottom: 20,
+  },
+  codeText: {
+    fontSize: 13,
+    fontFamily: 'Courier',
+  },
+  modalClose: {
+    borderRadius: BorderRadius.lg,
+    padding: 14,
+    alignItems: 'center',
   },
 });
