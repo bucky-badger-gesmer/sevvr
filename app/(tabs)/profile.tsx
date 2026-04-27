@@ -15,7 +15,7 @@ import * as streakService from '@/lib/streak-service';
 import { formatDurationShort } from '@/lib/format';
 
 export default function ProfileScreen() {
-  const { user, signOut, deleteAccount, updateEmail } = useAuth();
+  const { user, signOut, deleteAccount, updateEmail, updatePassword } = useAuth();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -26,6 +26,11 @@ export default function ProfileScreen() {
   const [newEmail, setNewEmail] = useState('');
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailSuccess, setEmailSuccess] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -91,6 +96,30 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleUpdatePassword = async () => {
+    setPasswordError('');
+    setPasswordSuccess(false);
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await updatePassword(newPassword);
+      setPasswordSuccess(true);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      Alert.alert('Error', err.message ?? 'Failed to update password');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContent}>
       <ThemedView style={[styles.container, { paddingTop: insets.top + 24 }]}>
@@ -130,7 +159,7 @@ export default function ProfileScreen() {
         <View style={styles.emailSection}>
           <ThemedText style={styles.sectionLabel}>Email</ThemedText>
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border, fontFamily: Typography.body.fontFamily }]}
+            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface, fontFamily: Typography.body.fontFamily }]}
             value={newEmail}
             onChangeText={setNewEmail}
             keyboardType="email-address"
@@ -151,6 +180,51 @@ export default function ProfileScreen() {
               <ActivityIndicator color={colors.tint} />
             ) : (
               <ThemedText style={[styles.buttonText, { color: colors.tint }]}>Update Email</ThemedText>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Divider */}
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+        {/* Password Update */}
+        <View style={styles.emailSection}>
+          <ThemedText style={styles.sectionLabel}>Change Password</ThemedText>
+          <TextInput
+            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface, fontFamily: Typography.body.fontFamily }]}
+            value={newPassword}
+            onChangeText={setNewPassword}
+            placeholder="New password"
+            placeholderTextColor={colors.muted}
+            secureTextEntry
+            textContentType="newPassword"
+          />
+          <TextInput
+            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface, fontFamily: Typography.body.fontFamily }]}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Confirm new password"
+            placeholderTextColor={colors.muted}
+            secureTextEntry
+            textContentType="newPassword"
+          />
+          {passwordError ? (
+            <ThemedText style={[styles.errorText, { color: colors.error }]}>{passwordError}</ThemedText>
+          ) : null}
+          {passwordSuccess && (
+            <ThemedText style={[styles.successText, { color: colors.success ?? colors.tint }]}>
+              Password updated successfully.
+            </ThemedText>
+          )}
+          <TouchableOpacity
+            style={[styles.button, { borderColor: colors.tint, backgroundColor: colors.tint + '10' }]}
+            onPress={handleUpdatePassword}
+            disabled={passwordLoading || !newPassword}
+          >
+            {passwordLoading ? (
+              <ActivityIndicator color={colors.tint} />
+            ) : (
+              <ThemedText style={[styles.buttonText, { color: colors.tint }]}>Update Password</ThemedText>
             )}
           </TouchableOpacity>
         </View>
@@ -245,6 +319,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   successText: {
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  errorText: {
     fontSize: 13,
     textAlign: 'center',
   },

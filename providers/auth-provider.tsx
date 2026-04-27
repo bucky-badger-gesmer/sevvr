@@ -11,6 +11,7 @@ export type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateEmail: (newEmail: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
 };
@@ -57,6 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.updateEmail(newEmail);
   }, []);
 
+  const updatePassword = useCallback(async (newPassword: string) => {
+    await authService.updatePassword(newPassword);
+  }, []);
+
   const resetPassword = useCallback(async (email: string) => {
     await authService.resetPassword(email);
   }, []);
@@ -75,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         updateEmail,
+        updatePassword,
         resetPassword,
         deleteAccount,
       }}
