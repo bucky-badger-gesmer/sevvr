@@ -1,8 +1,8 @@
 import { supabase } from './supabase';
-import { nanoid } from 'nanoid';
+import * as Crypto from 'expo-crypto';
 
 function generateToken(): string {
-  return nanoid(21);
+  return Crypto.randomUUID();
 }
 
 export async function createChallenge(challengedId: string | null) {
