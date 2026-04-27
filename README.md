@@ -1,50 +1,81 @@
-# Welcome to your Expo app 👋
+# sevvr
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A competitive social wellness app where users compete to stay off their phones. Built with Expo, React Native, and Supabase.
 
-## Get started
+## Live Demo
 
-1. Install dependencies
+The app is deployed and available at **https://sevvr.netlify.app/**
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- [Node.js](https://nodejs.org/) (v18 or later)
+- npm (comes with Node.js)
+- **For iOS Simulator (Mac only):** [Xcode](https://developer.apple.com/xcode/) installed from the Mac App Store
+- **For on-device testing:** [Expo Go](https://expo.dev/go) installed on your phone
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Set up environment variables
 
-## Learn more
+Create a `.env` file in the project root with your Supabase credentials:
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+You can find these values in your [Supabase project dashboard](https://supabase.com/dashboard) under **Settings > API**.
 
-## Join the community
+### 3. Start the app
 
-Join our community of developers creating universal apps.
+```bash
+npx expo start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This launches the Expo dev server. From there you have two options:
+
+#### Option A: iOS Simulator (Mac only)
+
+Press **i** in the terminal to open the app in the iOS Simulator. This requires Xcode to be installed.
+
+```bash
+# Or start directly in the simulator:
+npx expo start --ios
+```
+
+#### Option B: Your phone with Expo Go
+
+1. Install **Expo Go** on your [iOS](https://apps.apple.com/app/expo-go/id982107779) or [Android](https://play.google.com/store/apps/details?id=host.exp.exponent) device.
+2. Make sure your phone and computer are on the same Wi-Fi network.
+3. Scan the QR code shown in the terminal with your phone's camera (iOS) or the Expo Go app (Android).
+
+## Project Structure
+
+```
+app/
+  (auth)/       # Login, signup, forgot password screens
+  (tabs)/       # Main app tabs: Sever, Stats, Social, Profile
+components/     # Reusable UI components
+lib/            # Service layer (Supabase calls, utilities)
+providers/      # Auth context provider
+constants/      # Theme, colors, typography
+types/          # TypeScript type definitions
+supabase/       # Database migrations
+technical-plan/ # Implementation specs and design docs
+```
+
+## Available Scripts
+
+| Command                | Description                     |
+| ---------------------- | ------------------------------- |
+| `npx expo start`       | Start the dev server            |
+| `npx expo start --ios` | Start directly on iOS Simulator |
+| `npx expo start --web` | Start the web version           |
+| `npm run lint`         | Run ESLint                      |
