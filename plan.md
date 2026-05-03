@@ -410,3 +410,33 @@ Also, the plan proposed an idea of detecting when a session ends by detecting mo
 Overall, the diagrams are helpful, but again, overcomplicates things because it couldn't consider using Supabase as a backend and database layer. It shows one big "Controller" but we have two separate providers for auth and session. It shows one "DatabaseService" even though we have seven total databases. It also includes SensorService and NotificationService that were never implemented. In total, we have 16 out of 21 user stories fully implemented and working.
 
 Moving forward, the main limitations are simply restrictions on the framework of React Native and Expo themselves. It may be better to consider building with more native development like iOS and Android, but this is certainly a good first start for prototyping!
+
+---
+
+## C2 Update (2026-05-03)
+
+Since the original plan was written (2026-04-12), several items listed as missing or buggy have been implemented or fixed. This section documents what changed.
+
+### Features implemented since original plan
+
+1. **NotificationProvider built** — `providers/notification-provider.tsx` now requests permissions, obtains Expo push tokens on physical devices, registers them to `profiles.push_token` via `lib/notification-service.ts`, and routes notification taps to the correct screen (challenge invite, challenge result, streak reminder). Push tokens are registered but Supabase Edge Functions to actually *send* notifications are still missing.
+
+2. **Email update and password change UI added** — The profile screen (`app/(tabs)/profile.tsx`) now has "Update Email" and "Change Password" sections that call the corresponding `auth-service.ts` functions. Story 20 is now complete.
+
+3. **Challenge record on profile** — The profile screen now queries `challenge_records` and displays wins and losses via StatCards. Story 19 is now complete.
+
+### Bugs fixed since original plan
+
+1. **Friends leaderboard bug fixed** — The client-side filter (`row.user_id !== userId`) that removed the current user from their own friends leaderboard no longer exists. The service now correctly includes the user with an `isCurrentUser` flag.
+
+2. **Challenge token generation fixed** — `challenge-service.ts` no longer uses `Math.random()` for token generation. It now uses `expo-crypto`'s `randomUUID()` for cryptographically secure tokens (commit `ddb8aeb`).
+
+### Design decision: session detection
+
+The accelerometer-based movement detection described in the RUP was intentionally dropped during implementation. Session detection relies on AppState transitions: when the app goes to background (phone locked), the session runs; when the app returns to foreground (user opens sevvr), the session ends.
+
+**Known caveat:** If a user locks their phone, then unlocks and opens a different app (e.g., YouTube) without returning to sevvr, the session keeps running because sevvr never returns to the foreground. This is a trade-off of the AppState approach — more invasive detection methods are restricted by iOS and Android platform policies.
+
+### Updated story count
+
+The original plan reported 16 stories fully done, 3 partial, 1 missing. The current state is **19 stories fully done, 2 partially done (11 and 18)**.
