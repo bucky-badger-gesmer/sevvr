@@ -1,22 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "outlook-calendar": {
-      "type": "remote",
-      "url": "https://agent365.svc.cloud.microsoft/agents/tenants/81549142-4900-41ac-a022-6ce1b9a87cd1/servers/mcp_CalendarTools",
-      "enabled": true,
-      "oauth": {
-        "clientId": "13811303-e812-47d9-9a1d-4ec73f790ed2",
-        "clientSecret": "pV28Q~ljx3l.EvIQX-y5zG7eYuoQRa4odhbtNbwC"
-      }
-    },
-    "outlook-mail": {
-      "type": "remote",
-      "url": "https://agent365.svc.cloud.microsoft/agents/tenants/81549142-4900-41ac-a022-6ce1b9a87cd1/servers/mcp_MailTools",
-      "enabled": true,
-      "oauth": {
-        "clientId": "13811303-e812-47d9-9a1d-4ec73f790ed2",
-        "clientSecret": "pV28Q~ljx3l.EvIQX-y5zG7eYuoQRa4odhbtNbwC"
+    "supabase": {
+      "type": "local",
+      "command": ["npx", "-y", "@supabase/mcp-server-supabase@latest"],
+      "environment": {
+        "SUPABASE_ACCESS_TOKEN": "{env:SUPABASE_ACCESS_TOKEN}"
       }
     }
   }
